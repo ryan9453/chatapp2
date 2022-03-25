@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Ryan</string>
+    <string name="wrong_message">Wrong message</string>
+    <string name="userid_too_short">Your userid is too short.</string>
+    <string name="userid_too_long">Your userid is too long.</string>
+    <string name="userid_is_wrong">"Your userid can only contain letters or numbers."</string>
+    <string name="pwd_too_short">Your password is too short.</string>
+    <string name="pwd_too_long">Your password is too long.</string>
+    <string name="pwd_is_wrong">Your password can only contain letters and numbers.</string>
+    <string name="pwd_is_not_same">Your password is not same.</string>
+
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label" translatable="false">First Fragment</string>
+    <string name="second_fragment_label" translatable="false">Second Fragment</string>
+    <string name="next" translatable="false">Next</string>
+    <string name="previous" translatable="false">Previous</string>
+
+    <string name="hello_first_fragment" translatable="false">Hello first fragment</string>
+    <string name="hello_second_fragment" translatable="false">Hello second fragment. Arg: %1$s</string>
+    <string name="home">home</string>
+    <string name="search">search</string>
+    <string name="person">person</string>
+    <string name="userid">Userid</string>
+    <string name="log_in">Log in</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="remember_me">Remember me</string>
+    <string name="password">Password</string>
+    <string name="name">Name</string>
+    <string name="member_information">Member Information</string>
+    <string name="log_out">Log out</string>
+    <string name="send_something">Send something…</string>
+    <string name="the_best_hit">The Best Hit!</string>
+    <string name="search_result">Search Result</string>
+    <string name="send">Send</string>
+    <string name="nickname">Nickname</string>
+    <string name="please_enter_password_again">Please enter password again</string>
+    <string name="tags" translatable="false">Tags</string>
+    <string name="title" translatable="false">title</string>
+    <string name="stream_name" translatable="false">stream_name</string>
+    <string name="taiwan">Taiwan</string>
+    <string name="i_am_message" translatable="false">I am Message</string>
+    <string name="message">Message</string>
+    <string name="log_in_successfully">Log in successfully!</string>
+    <string name="ok">OK</string>
+    <string name="the_userid_is_not_exist">The Userid is not exist.</string>
+    <string name="wrong_password">Wrong Password.</string>
+    <string name="are_you_sure_want_to_leave">Are you sure you want to leave?</string>
+    <string name="chat_yes">YES</string>
+    <string name="chat_no">NO</string>
+    <string name="sign_up_successfully">Sign up successfully!</string>
+    <string name="welcome">welcome</string>
+    <string name="that_entering_the_room">entering the room</string>
+    <string name="has_left_the_room">has left the room</string>
+    <string name="broadcast">broadcast</string>
+    <string name="please_enter_words">please enter words.</string>
+    <string name="guest">guest</string>
+
+</resources>

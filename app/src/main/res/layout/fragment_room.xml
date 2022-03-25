@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/logout">
+
+    <VideoView
+        android:id="@+id/v_girl"
+        android:layout_width="476dp"
+        android:layout_height="799dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/bt_leave"
+        android:layout_width="36dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/logout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/bt_send"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/send"
+        app:layout_constraintBottom_toBottomOf="@+id/ed_send_message"
+        app:layout_constraintStart_toEndOf="@+id/ed_send_message"
+        app:layout_constraintTop_toTopOf="@+id/ed_send_message"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <View
+        android:id="@+id/view3"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:alpha="0.6"
+        android:background="@drawable/msg_back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/view2"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:alpha="0.6"
+        android:background="@drawable/msg_back"
+        app:layout_constraintBottom_toBottomOf="@+id/bt_send"
+        app:layout_constraintEnd_toEndOf="@+id/bt_send"
+        app:layout_constraintStart_toStartOf="@+id/bt_send"
+        app:layout_constraintTop_toTopOf="@+id/bt_send" />
+
+    <EditText
+        android:id="@+id/ed_send_message"
+        android:layout_width="310dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="4dp"
+        android:alpha="0.6"
+        android:background="@drawable/msg_back"
+        android:ems="10"
+        android:hint="@string/send_something"
+        android:inputType="textPersonName"
+        android:textColor="@color/white"
+        android:textColorHint="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/msg_recycler"
+        android:layout_width="330dp"
+        android:layout_height="251dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/ed_send_message"
+        app:layout_constraintEnd_toEndOf="@+id/ed_send_message"
+        app:layout_constraintStart_toStartOf="parent" >
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
