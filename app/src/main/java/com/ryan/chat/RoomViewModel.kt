@@ -13,6 +13,9 @@ class RoomViewModel : ViewModel() {
     // 將直播間資料設定成 LiveData以便觀察
     val chatRooms = MutableLiveData<List<Lightyear>>()
     val searchRooms = MutableLiveData<List<Lightyear>>()
+    companion object {
+        val TAG = RoomViewModel::class.simpleName
+    }
 
 
 
@@ -20,13 +23,15 @@ class RoomViewModel : ViewModel() {
     fun getAllRooms() {
         // viewModel裡專用的協程方法
         // 因為這次的耗時工作是「存取」網路資料，所以情境物件設定「IO」
+        Log.d(TAG, "進來方法")
         viewModelScope.launch(Dispatchers.IO) {
-
+            Log.d(TAG, "進到協程")
             // 先將回應的json轉成字串
             val json = URL("https://api.jsonserve.com/qHsaqy").readText()
             // 在這前提要先解析過一次他回應的 json結構
             // 並新增一個接收他 json結構的類別
             // 將 json字串建立成一個類別物件
+            Log.d(TAG, "取回 json 物件")
             val response = Gson().fromJson(json, ChatRooms::class.java)
             chatRooms.postValue(response.result.lightyear_list)
         }

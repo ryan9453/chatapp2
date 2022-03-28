@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -38,8 +39,14 @@ android {
 
 dependencies {
 
+    // firebase
+    implementation 'com.google.firebase:firebase-database:20.0.4'
+    implementation 'com.google.firebase:firebase-auth:21.0.3'
+    implementation 'com.google.firebase:firebase-auth-ktx:21.0.3'
+
     // glide
     implementation 'com.github.bumptech.glide:glide:4.13.0'
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.1.0'
     kapt 'com.github.bumptech.glide:compiler:4.13.0'
 
     // Gson
