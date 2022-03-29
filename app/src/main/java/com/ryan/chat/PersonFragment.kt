@@ -2,11 +2,14 @@ package com.ryan.chat
 
 import android.Manifest.permission.*
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.icu.text.SimpleDateFormat
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -20,6 +23,11 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.ryan.chat.databinding.FragmentPersonBinding
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import java.util.*
 
 class PersonFragment : Fragment() {
     companion object {
@@ -28,14 +36,15 @@ class PersonFragment : Fragment() {
             PersonFragment()
         }
         private var imageUri: Uri?=null
-        private val REQUEST_CAPTURE = 500
-        private val ACTION_CAMERA_REQUEST_CODE = 100
-        private val ACTION_ALBUM_REQUEST_CODE = 200
+        private const val REQUEST_CAPTURE = 500
+        private const val ACTION_CAMERA_REQUEST_CODE = 100
+        private const val ACTION_ALBUM_REQUEST_CODE = 200
 
-        private val PERMISSION_CAMERA = 300
-        private val PERMISSION_ALBUM = 400
+        private const val PERMISSION_CAMERA = 300
+        private const val PERMISSION_ALBUM = 400
     }
     lateinit var binding: FragmentPersonBinding
+    lateinit var mAuth : FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,6 +59,7 @@ class PersonFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.imMyHead.scaleType = ImageView.ScaleType.CENTER_CROP
+        mAuth = FirebaseAuth.getInstance()
 
         val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
         var login_userid = prefLogin.getString("login_userid", "")
@@ -62,7 +72,9 @@ class PersonFragment : Fragment() {
         binding.tvPersonShowName.setText(username)
 
 
-
+        // 登出按鈕
+        // 登出後，將 login_state 改成 false 存回 shared_pref
+        // 將首頁的 小頭貼跟名字隱藏
         binding.btLogout.setOnClickListener {
             val parentActivity =  requireActivity() as MainActivity
             val login: Boolean = false
@@ -80,6 +92,9 @@ class PersonFragment : Fragment() {
             }
         }
 
+
+        // Camera 按鈕：危險權限檢查，如果都有權限，直接呼叫 Camera 方法
+        // Album 按鈕：同上
         binding.btEditHead.setOnClickListener {
             AlertDialog.Builder(requireContext())
                 .setTitle("take a picture")
@@ -113,6 +128,8 @@ class PersonFragment : Fragment() {
 
     }
 
+    // 若是剛得到使用者允許，專門檢查的方法
+    // 確認有拿到權限後，呼叫相應的方法
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -163,6 +180,7 @@ class PersonFragment : Fragment() {
         startActivityForResult(intent, ACTION_ALBUM_REQUEST_CODE)
     }
 
+    // 從 RequestCode 去解析並作出相應的動作
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -178,6 +196,8 @@ class PersonFragment : Fragment() {
             ACTION_CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     displayImage(data.extras?.get("data") as Bitmap)
+                    imageUri = data.data!!
+                    uploadImageToStorage(imageUri!!)
                 }
             }
             ACTION_ALBUM_REQUEST_CODE -> {
@@ -185,6 +205,8 @@ class PersonFragment : Fragment() {
                     val resolver = requireActivity().contentResolver
                     val bitmap = MediaStore.Images.Media.getBitmap(resolver, data.data)
                     displayImage(bitmap)
+                    imageUri = data.data!!
+                    uploadImageToStorage(imageUri!!)
                 }
             }
 
@@ -193,6 +215,30 @@ class PersonFragment : Fragment() {
 
     private fun displayImage(bitmap: Bitmap) {
         binding.imMyHead.setImageBitmap(bitmap)
+    }
+
+
+    private fun uploadImageToStorage(uri:Uri) {
+
+        // 上傳中的示意視窗
+        val progressDialog = ProgressDialog(requireContext())
+        progressDialog.setMessage("Uploading File...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        val storageRef = FirebaseStorage.getInstance().getReference("head/123.jpg")
+        storageRef.let { ref ->
+            ref.putFile(uri).
+            addOnSuccessListener {
+                Toast.makeText(requireContext(), "Successfully upload", Toast.LENGTH_LONG).show()
+                if (progressDialog.isShowing) progressDialog.dismiss()
+            } .addOnFailureListener {
+
+                Toast.makeText(requireContext(), "Failed", Toast.LENGTH_LONG).show()
+                if (progressDialog.isShowing) progressDialog.dismiss()
+            }
+        }
+
     }
 
 }

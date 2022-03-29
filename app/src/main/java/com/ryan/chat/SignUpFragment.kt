@@ -35,7 +35,7 @@ class SignUpFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val mAuth = FirebaseAuth.getInstance()
+        mAuth = FirebaseAuth.getInstance()
         val db = Firebase.firestore
 
         binding.btSignSend.setOnClickListener {
