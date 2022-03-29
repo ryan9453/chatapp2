@@ -35,6 +35,7 @@ class RoomFragment : Fragment() {
 
     lateinit var adapter : RoomMessageAdapter
     val messageViewModel by viewModels<MessageViewModel>()
+    var connectTimes = 0
 
 
 
@@ -87,6 +88,7 @@ class RoomFragment : Fragment() {
         val chatDialogContent = getString(R.string.are_you_sure_want_to_leave)
         val chatDialogYes = getString(R.string.chat_yes)
         val chatDialogNo = getString(R.string.chat_no)
+
 
         if (login) {
             requestName = username.toString()
@@ -192,6 +194,8 @@ class RoomFragment : Fragment() {
 
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 super.onOpen(webSocket, response)
+                connectTimes ++
+                Log.d(TAG, "onOpen: 連線次數 = $connectTimes")
                 Log.d(TAG, ": onOpen: response = $response")
             }
         })

@@ -7,14 +7,14 @@
 
     <ImageView
         android:id="@+id/im_my_head"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="115dp"
+        android:layout_height="115dp"
         android:layout_marginTop="40dp"
+        android:background="@drawable/picpersonal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_member_info"
-        tools:srcCompat="@drawable/picpersonal" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_member_info" />
 
     <TextView
         android:id="@+id/tv_person_show_name"
