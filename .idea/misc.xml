@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/layout/fragment_person.xml" value="0.20885416666666667" />
         <entry key="app/src/main/res/layout/fragment_search.xml" value="0.20885416666666667" />
         <entry key="app/src/main/res/layout/row_hitroom.xml" value="0.171875" />
+        <entry key="app/src/main/res/xml/provider_paths.xml" value="0.2554347826086957" />
       </map>
     </option>
   </component>

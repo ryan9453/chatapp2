@@ -7,7 +7,6 @@ import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -23,11 +22,14 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.ryan.chat.databinding.FragmentPersonBinding
 import android.widget.ImageView
-import androidx.annotation.RequiresApi
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
-import java.util.*
+import java.io.File
+import androidx.core.content.FileProvider
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+import com.google.firebase.storage.ktx.component1
+import com.google.firebase.storage.ktx.component2
 
 class PersonFragment : Fragment() {
     companion object {
@@ -45,6 +47,7 @@ class PersonFragment : Fragment() {
     }
     lateinit var binding: FragmentPersonBinding
     lateinit var mAuth : FirebaseAuth
+    var count = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,7 +111,10 @@ class PersonFragment : Fragment() {
                         ActivityCompat.requestPermissions(requireActivity(),
                             arrayOf(CAMERA, WRITE_EXTERNAL_STORAGE),
                             PERMISSION_CAMERA)
-                    } else takeImageFromCameraWithIntent()
+                    } else {
+                        takeImageFromCameraWithIntent()
+//                        openCamera()
+                    }
                 }
                 .setNeutralButton("Album") { d, w ->
                     if (ActivityCompat.checkSelfPermission(requireContext(), READ_EXTERNAL_STORAGE)
@@ -139,6 +145,7 @@ class PersonFragment : Fragment() {
         if (requestCode == PERMISSION_CAMERA) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takeImageFromCameraWithIntent()
+//                openCamera()
             }
         } else if (requestCode == PERMISSION_ALBUM) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -152,23 +159,48 @@ class PersonFragment : Fragment() {
     // 老師的寫法 (使用相機)
     private fun openCamera() {
         Log.d(TAG, "openCamera: 有開相機方法")
-        val camera = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.TITLE, "My Picture")
             put(MediaStore.Images.Media.DESCRIPTION, "Testing")
         }
+
+        // 利用 contentResolver 的 insert 方法，得到一個在「外部儲存位置」上的 新的 Uri
+        // 且 Title = My Picture, Description = Testing
         imageUri = requireActivity().contentResolver.insert(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        camera.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+//        imageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+
+        // 指定 cameraIntent OUTPUT 的 Uri 設為 imageUri
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
         Log.d(TAG, "openCamera: MediaStore.EXTRA_OUTPUT = ${MediaStore.EXTRA_OUTPUT}")
         Log.d(TAG, "openCamera: imageUri = $imageUri")
-        startActivityForResult(camera, REQUEST_CAPTURE)
+        startActivityForResult(cameraIntent, REQUEST_CAPTURE)
     }
 
     // 網路大神的寫法 (使用相機)
     private fun takeImageFromCameraWithIntent() {
         Log.d(TAG, "take image from camera")
+
+        // 將照片暫時存入「外部暫存(快取)資料夾」，並命名為 My_Captured_Photo
+        val captureImage = File(requireContext().externalCacheDir, "My_Captured_Photo")
+
+        // 如果原本已經有就刪掉再新增
+        if (captureImage.exists()) {
+            captureImage.delete()
+        }
+        captureImage.createNewFile()
+
+        imageUri = if (Build.VERSION.SDK_INT >= 24) {
+            FileProvider.getUriForFile(requireContext(), "com.ryan.chat.fileProvider", captureImage)
+        } else {
+            Uri.fromFile(captureImage)
+        }
+        Log.d(TAG, "takeImageFromCameraWithIntent: imageUri = $imageUri")
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
         startActivityForResult(intent, ACTION_CAMERA_REQUEST_CODE)
     }
 
@@ -195,8 +227,8 @@ class PersonFragment : Fragment() {
 
             ACTION_CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    displayImage(data.extras?.get("data") as Bitmap)
-                    imageUri = data.data!!
+                    val bitMap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, imageUri)
+                    displayImage(bitMap)
                     uploadImageToStorage(imageUri!!)
                 }
             }
@@ -220,14 +252,28 @@ class PersonFragment : Fragment() {
 
     private fun uploadImageToStorage(uri:Uri) {
 
+        val uid = mAuth.currentUser?.uid
+
+        val storage = FirebaseStorage.getInstance()
+
+        // 取得目前頭貼個數，新的檔名為既有頭貼數 +1
+        val listRef = storage.reference.child("$uid/head")
+
+        listRef.listAll().addOnSuccessListener { (items, prefixes) ->
+            count = items.size+1
+            Log.d(TAG, "uploadImageToStorage: count = $count")
+        }
+
+        Log.d(TAG, "uploadImageToStorage: count = $count")
+
         // 上傳中的示意視窗
         val progressDialog = ProgressDialog(requireContext())
         progressDialog.setMessage("Uploading File...")
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        val storageRef = FirebaseStorage.getInstance().getReference("head/123.jpg")
-        storageRef.let { ref ->
+        val storageRefHead = storage.reference.child("$uid/head/head")
+        storageRefHead.let { ref ->
             ref.putFile(uri).
             addOnSuccessListener {
                 Toast.makeText(requireContext(), "Successfully upload", Toast.LENGTH_LONG).show()
@@ -237,6 +283,13 @@ class PersonFragment : Fragment() {
                 Toast.makeText(requireContext(), "Failed", Toast.LENGTH_LONG).show()
                 if (progressDialog.isShowing) progressDialog.dismiss()
             }
+        }
+
+        val storageRefImage = storage.reference.child("$uid/head/$count")
+        storageRefImage.putFile(uri).addOnSuccessListener {
+            Log.d(TAG, "uploadImageToStorage: 上傳成功")
+        } .addOnFailureListener {
+            Log.d(TAG, "uploadImageToStorage: 上傳失敗")
         }
 
     }

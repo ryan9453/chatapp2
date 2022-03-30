@@ -13,9 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ryan.chat.databinding.FragmentHomeBinding
 import com.ryan.chat.databinding.RowChatroomBinding
-import okhttp3.*
-import okio.ByteString
-import java.util.concurrent.TimeUnit
 
 class HomeFragment : Fragment() {
     companion object {
@@ -79,7 +76,7 @@ class HomeFragment : Fragment() {
 
         override fun onBindViewHolder(holder: BindingViewHolder, position: Int) {
             val lightYear = chatRooms[position]
-            holder.streaName.setText(lightYear.nickname)
+            holder.streamName.setText(lightYear.nickname)
             holder.title.setText(lightYear.stream_title)
             holder.tags.setText(lightYear.tags)
             Glide.with(this@HomeFragment).load(lightYear.head_photo)
@@ -104,7 +101,7 @@ class HomeFragment : Fragment() {
     }
     inner class BindingViewHolder(val binding: RowChatroomBinding):
         RecyclerView.ViewHolder(binding.root) {
-        val streaName = binding.tvStreamName
+        val streamName = binding.tvStreamName
         val title = binding.tvTitle
         val headPhoto = binding.imHeadPhoto
         val tags = binding.tvTags
