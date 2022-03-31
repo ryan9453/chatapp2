@@ -26,8 +26,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
 import androidx.core.content.FileProvider
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
+import androidx.fragment.app.viewModels
 import com.google.firebase.storage.ktx.component1
 import com.google.firebase.storage.ktx.component2
 
@@ -46,7 +45,8 @@ class PersonFragment : Fragment() {
         private const val PERMISSION_ALBUM = 400
     }
     lateinit var binding: FragmentPersonBinding
-    lateinit var mAuth : FirebaseAuth
+    lateinit var auth : FirebaseAuth
+    private val headViewModel by viewModels<HeadViewModel>()
     var count = 0
 
     override fun onCreateView(
@@ -62,7 +62,8 @@ class PersonFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.imMyHead.scaleType = ImageView.ScaleType.CENTER_CROP
-        mAuth = FirebaseAuth.getInstance()
+        auth = FirebaseAuth.getInstance()
+        val uid = auth.currentUser?.uid
 
         val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
         var login_userid = prefLogin.getString("login_userid", "")
@@ -74,18 +75,22 @@ class PersonFragment : Fragment() {
         binding.tvPersonShowUserid.setText(login_userid)
         binding.tvPersonShowName.setText(username)
 
+        headViewModel.getHeadImageByUid(uid!!)
+
+        headViewModel.headImage.observe(viewLifecycleOwner) { bitmap ->
+            displayHeadImage(bitmap)
+        }
 
         // 登出按鈕
         // 登出後，將 login_state 改成 false 存回 shared_pref
         // 將首頁的 小頭貼跟名字隱藏
         binding.btLogout.setOnClickListener {
             val parentActivity =  requireActivity() as MainActivity
-            val login: Boolean = false
             prefLogin.edit()
-                .putBoolean("login_state", login)
+                .putBoolean("login_state", false)
                 .putString("login_userid", "")
                 .apply()
-            Log.d(TAG, "Login_state = $login")
+            Log.d(TAG, "Login_state = false")
             parentActivity.binding.tvHomeLoginUserid.setText("")
             parentActivity.binding.imHead.visibility = View.GONE
             parentActivity.supportFragmentManager.beginTransaction().run {
@@ -93,6 +98,7 @@ class PersonFragment : Fragment() {
                 replace(R.id.main_container, parentActivity.mainFragments[3])
                 commit()
             }
+            auth.signOut()
         }
 
 
@@ -227,8 +233,9 @@ class PersonFragment : Fragment() {
 
             ACTION_CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    val bitMap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, imageUri)
-                    displayImage(bitMap)
+                    val resolver = requireActivity().contentResolver
+                    val bitMap = MediaStore.Images.Media.getBitmap(resolver, imageUri)
+                    displayHeadImage(bitMap)
                     uploadImageToStorage(imageUri!!)
                 }
             }
@@ -236,23 +243,23 @@ class PersonFragment : Fragment() {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     val resolver = requireActivity().contentResolver
                     val bitmap = MediaStore.Images.Media.getBitmap(resolver, data.data)
-                    displayImage(bitmap)
                     imageUri = data.data!!
                     uploadImageToStorage(imageUri!!)
+                    displayHeadImage(bitmap)
                 }
             }
 
         }
     }
 
-    private fun displayImage(bitmap: Bitmap) {
+    private fun displayHeadImage(bitmap: Bitmap) {
         binding.imMyHead.setImageBitmap(bitmap)
     }
 
 
     private fun uploadImageToStorage(uri:Uri) {
 
-        val uid = mAuth.currentUser?.uid
+        val uid = auth.currentUser?.uid
 
         val storage = FirebaseStorage.getInstance()
 
@@ -262,6 +269,12 @@ class PersonFragment : Fragment() {
         listRef.listAll().addOnSuccessListener { (items, prefixes) ->
             count = items.size+1
             Log.d(TAG, "uploadImageToStorage: count = $count")
+            val storageRefImage = storage.reference.child("$uid/head/$count")
+            storageRefImage.putFile(uri).addOnSuccessListener {
+                Log.d(TAG, "uploadImageToStorage: 上傳成功")
+            } .addOnFailureListener {
+                Log.d(TAG, "uploadImageToStorage: 上傳失敗")
+            }
         }
 
         Log.d(TAG, "uploadImageToStorage: count = $count")
@@ -283,13 +296,6 @@ class PersonFragment : Fragment() {
                 Toast.makeText(requireContext(), "Failed", Toast.LENGTH_LONG).show()
                 if (progressDialog.isShowing) progressDialog.dismiss()
             }
-        }
-
-        val storageRefImage = storage.reference.child("$uid/head/$count")
-        storageRefImage.putFile(uri).addOnSuccessListener {
-            Log.d(TAG, "uploadImageToStorage: 上傳成功")
-        } .addOnFailureListener {
-            Log.d(TAG, "uploadImageToStorage: 上傳失敗")
         }
 
     }

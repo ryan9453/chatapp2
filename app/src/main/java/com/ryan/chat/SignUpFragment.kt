@@ -1,5 +1,6 @@
 package com.ryan.chat
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,9 +10,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.ryan.chat.databinding.FragmentSignUpBinding
+import com.google.firebase.auth.UserProfileChangeRequest as UserProfileChangeRequest
 
 class SignUpFragment : Fragment() {
     companion object {
@@ -21,7 +24,7 @@ class SignUpFragment : Fragment() {
         }
     }
     private lateinit var binding: FragmentSignUpBinding
-    private lateinit var mAuth: FirebaseAuth
+    private lateinit var auth: FirebaseAuth
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -35,7 +38,7 @@ class SignUpFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        mAuth = FirebaseAuth.getInstance()
+        auth = FirebaseAuth.getInstance()
         val db = Firebase.firestore
 
         binding.btSignSend.setOnClickListener {
@@ -47,7 +50,7 @@ class SignUpFragment : Fragment() {
             val pwd = binding.edSignPwd.text.toString()
             val pwdg = binding.edSignPwdAgain.text.toString()
 
-            val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
+
 
 
             var errorText = ""
@@ -66,57 +69,9 @@ class SignUpFragment : Fragment() {
 
             // 帳密規則正確
             if (errorText == "") {
-                val parentActivity =  requireActivity() as MainActivity
 
-                mAuth.createUserWithEmailAndPassword(email, pwd).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-
-                        // 註冊成功對話窗
-                        AlertDialog.Builder(requireContext())
-                            .setTitle(getString(R.string.message))
-                            .setMessage(getString(R.string.sign_up_successfully))
-                            .setPositiveButton(getString(R.string.ok), null)
-                            .show()
-
-                        prefLogin.edit()
-                            .putBoolean("login_state", true)
-                            .putString("login_userid", userId)
-                            .apply()
-
-                        // 將 firebase 自動生成的 uid 取出來
-                        // 以 uid 當 key 去幫用戶儲存文字資料在 firestore
-                        val user = mAuth.currentUser
-                        val uid = user?.uid
-                        // 將用戶資訊以 firestore 的儲存格式存入
-                        val userInfo = hashMapOf(
-                            "Nickname" to nickName
-                        )
-
-                        // 將用戶資訊創建在 「userinfo」的 collection 下
-                        // 並以註冊時產生的 uid 當 key
-                        db.collection("userinfo").document(uid!!)
-                            .set(userInfo)
-                            .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
-                            .addOnFailureListener { e -> Log.w(TAG, "Error writting document", e) }
-
-                        if (user != null) {
-                            // 跳轉回 Home
-                            parentActivity.supportFragmentManager.beginTransaction().run {
-                                replace(R.id.main_container, parentActivity.mainFragments[1])
-                                parentActivity.binding.tvHomeLoginUserid.setText(userId)
-                                commit()
-                            }
-
-                            // 清除輸入框
-                            binding.edSignName.setText("")
-                            binding.edSignPwd.setText("")
-                            binding.edSignUserid.setText("")
-                            binding.edSignPwdAgain.setText("")
-                        }
-                    }
-                }
-
-
+                signUp(email, userId, pwd, nickName, db)
+                updateProfileFirst(nickName)
 
             // 錯誤訊息對話框
             } else {
@@ -217,6 +172,76 @@ class SignUpFragment : Fragment() {
                 replace(R.id.main_container, parentActivity.mainFragments[3])
                 commit()
             }
+        }
+    }
+
+    private fun signUp(email:String, userId:String, pwd:String, nickName:String, db:FirebaseFirestore) {
+        val parentActivity =  requireActivity() as MainActivity
+        val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
+
+        auth.createUserWithEmailAndPassword(email, pwd).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+
+                // 註冊成功對話窗
+                AlertDialog.Builder(requireContext())
+                    .setTitle(getString(R.string.message))
+                    .setMessage(getString(R.string.sign_up_successfully))
+                    .setPositiveButton(getString(R.string.ok), null)
+                    .show()
+
+                prefLogin.edit()
+                    .putBoolean("login_state", true)
+                    .putString("login_userid", userId)
+                    .apply()
+
+                // 將 firebase 自動生成的 uid 取出來
+                // 以 uid 當 key 去幫用戶儲存文字資料在 firestore
+                val user = auth.currentUser
+                val uid = user?.uid
+
+                // 將用戶資訊以 firestore 的儲存格式存入
+                val userInfo = hashMapOf(
+                    "Nickname" to nickName
+                )
+
+                // 將用戶資訊創建在 「userinfo」的 collection 下
+                // 並以註冊時產生的 uid 當 key
+                db.collection("userinfo").document(uid!!)
+                    .set(userInfo)
+                    .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully written!") }
+                    .addOnFailureListener { e -> Log.w(TAG, "Error writting document", e) }
+
+
+                // 跳轉回 Home
+                parentActivity.supportFragmentManager.beginTransaction().run {
+                    replace(R.id.main_container, parentActivity.mainFragments[1])
+                    parentActivity.binding.tvHomeLoginUserid.setText(userId)
+                    commit()
+                }
+
+                // 清除輸入框
+                binding.edSignName.setText("")
+                binding.edSignPwd.setText("")
+                binding.edSignUserid.setText("")
+                binding.edSignPwdAgain.setText("")
+
+            }
+        }
+    }
+
+    private fun updateProfileFirst(nickName: String) {
+        val headUri = Uri.parse("android.resource://${requireContext().packageName}/${R.drawable.picpersonal}")
+        auth.currentUser?.let { user ->
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(nickName)
+                .setPhotoUri(headUri)
+                .build()
+            user.updateProfile(profileUpdates)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "User first profile updated.")
+                    }
+                }
         }
     }
 }

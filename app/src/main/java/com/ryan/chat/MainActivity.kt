@@ -6,25 +6,23 @@ import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import com.ryan.chat.databinding.ActivityMainBinding
-import java.util.*
-import java.util.concurrent.TimeUnit
-import androidx.core.app.ActivityCompat
-import android.Manifest.permission.*
-import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.widget.ImageView
+import com.google.firebase.auth.FirebaseAuth
 
 
 class MainActivity : AppCompatActivity() {
     companion object {
         val TAG = MainActivity::class.java.simpleName
-        val REQUEST_CONTACTS = 100
     }
 
     lateinit var binding: ActivityMainBinding
     val mainFragments = mutableListOf<Fragment>()
     val chatFragments = mutableListOf<Fragment>()
-    val roomViewModel by viewModels<RoomViewModel>()
+    private val roomViewModel by viewModels<RoomViewModel>()
+    private val headViewModel by viewModels<HeadViewModel>()
+    lateinit var auth : FirebaseAuth
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +32,20 @@ class MainActivity : AppCompatActivity() {
 //        val sysLanguage = Locale.getDefault().getLanguage()
 //        Log.d(TAG, "目前語言是 = $sysLanguage")
 
+        // 小頭貼設置方式為置中
+        binding.imHead.scaleType = ImageView.ScaleType.CENTER_CROP
+
+        // 初始化權限實例
+        auth = FirebaseAuth.getInstance()
+
+
+        // 頭貼觀察者
+        headViewModel.headImage.observe(this) { bitmap ->
+            displaySmallHeadImage(bitmap)
+        }
+        // 使用頭貼 ViewModel 獲取此 user 當前 head
+        headViewModel.getHeadImageByUid(auth.uid!!)
+        headViewModel.getHeadImageByUserProfile(contentResolver)
 
         binding.searchContainer.visibility = View.GONE
 
@@ -53,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.action_person -> {
                     val prefLogin = getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
-                    var login = prefLogin.getBoolean("login_state", false)
+                    val login = prefLogin.getBoolean("login_state", false)
                     Log.d(TAG, "login_state = $login")
                     if (login) {
                         Log.d(TAG, "有登入去個人資訊")
@@ -86,6 +98,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun displaySmallHeadImage(bitmap: Bitmap?) {
+        binding.imHead.setImageBitmap(bitmap)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            reload()
+        }
+    }
+
+    private fun reload() {
+        //
     }
 
     private fun initFragments() {

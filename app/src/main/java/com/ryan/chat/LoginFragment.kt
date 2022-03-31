@@ -82,16 +82,16 @@ class LoginFragment : Fragment() {
             val prefUser = requireContext().getSharedPreferences("userinfo", AppCompatActivity.MODE_PRIVATE)
 
             // 檢查紀錄帳號用，從 "chat"資料夾做檢查
-            val pref = requireContext().getSharedPreferences("chat", AppCompatActivity.MODE_PRIVATE)
+//            val pref = requireContext().getSharedPreferences("chat", AppCompatActivity.MODE_PRIVATE)
 
             // 存取登入狀態用
             val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
 
             // 取目前輸入的帳號密碼準備做檢查
-            var ed_user = binding.edLoginUserid.text.toString()
-            var ed_pwd = binding.edLoginPwd.text.toString()
-            var check_user = prefUser.getString("${ed_user}","")
-            var check_pwd = prefUser.getString("${ed_user}pwd","")
+            val ed_user = binding.edLoginUserid.text.toString()
+            val ed_pwd = binding.edLoginPwd.text.toString()
+            val check_user = prefUser.getString(ed_user,"")
+            val check_pwd = prefUser.getString("${ed_user}pwd","")
             var error_text = ""
 
             error_text =
@@ -127,7 +127,7 @@ class LoginFragment : Fragment() {
                     .setPositiveButton(getString(R.string.ok), null)
                     .show()
                 val login = prefLogin.getBoolean("login_state", false)
-                Log.d(TAG, "login_state = ${login}")
+                Log.d(TAG, "login_state = $login")
                 parentActivity.supportFragmentManager.beginTransaction().run {
                     replace(R.id.main_container, parentActivity.mainFragments[1])
                     commit()
