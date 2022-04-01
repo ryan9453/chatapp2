@@ -220,10 +220,10 @@ class SignUpFragment : Fragment() {
                 }
 
                 // 清除輸入框
-                binding.edSignName.setText("")
-                binding.edSignPwd.setText("")
-                binding.edSignUserid.setText("")
-                binding.edSignPwdAgain.setText("")
+                binding.edSignName.text.clear()
+                binding.edSignPwd.text.clear()
+                binding.edSignUserid.text.clear()
+                binding.edSignPwdAgain.text.clear()
 
             }
         }

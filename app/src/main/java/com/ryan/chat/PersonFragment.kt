@@ -4,6 +4,7 @@ import android.Manifest.permission.*
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -15,6 +16,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -24,11 +26,15 @@ import com.ryan.chat.databinding.FragmentPersonBinding
 import android.widget.ImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
-import java.io.File
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
+import com.google.common.io.ByteStreams.copy
+import com.google.common.io.Files.getFileExtension
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.storage.ktx.component1
 import com.google.firebase.storage.ktx.component2
+import java.io.*
 
 class PersonFragment : Fragment() {
     companion object {
@@ -63,7 +69,6 @@ class PersonFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.imMyHead.scaleType = ImageView.ScaleType.CENTER_CROP
         auth = FirebaseAuth.getInstance()
-        val uid = auth.currentUser?.uid
 
         val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
         var login_userid = prefLogin.getString("login_userid", "")
@@ -75,7 +80,9 @@ class PersonFragment : Fragment() {
         binding.tvPersonShowUserid.setText(login_userid)
         binding.tvPersonShowName.setText(username)
 
-        headViewModel.getHeadImageByUid(uid!!)
+//        headViewModel.getHeadImageByUid(uid!!)
+
+        headViewModel.getHeadImageByUserProfile(requireActivity().contentResolver)
 
         headViewModel.headImage.observe(viewLifecycleOwner) { bitmap ->
             displayHeadImage(bitmap)
@@ -89,10 +96,16 @@ class PersonFragment : Fragment() {
             prefLogin.edit()
                 .putBoolean("login_state", false)
                 .putString("login_userid", "")
-                .apply()
-            Log.d(TAG, "Login_state = false")
-            parentActivity.binding.tvHomeLoginUserid.setText("")
-            parentActivity.binding.imHead.visibility = View.GONE
+                .commit()
+
+            val resolver = requireActivity().contentResolver
+            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
+            val defaultImageUri = Uri.parse(defaultImagePath)
+            val bitMap = MediaStore.Images.Media.getBitmap(resolver, defaultImageUri)
+            parentActivity.binding.tvHomeLoginUserid.text = getString(R.string.guest)
+            parentActivity.binding.imHead.setImageBitmap(bitMap)
+//            parentActivity.binding.imHead.visibility = View.GONE
+
             parentActivity.supportFragmentManager.beginTransaction().run {
                 // mainFragments[3] = LoginFragment
                 replace(R.id.main_container, parentActivity.mainFragments[3])
@@ -236,23 +249,31 @@ class PersonFragment : Fragment() {
                     val resolver = requireActivity().contentResolver
                     val bitMap = MediaStore.Images.Media.getBitmap(resolver, imageUri)
                     displayHeadImage(bitMap)
+                    (requireActivity() as MainActivity).displaySmallHeadImage(bitMap)
                     uploadImageToStorage(imageUri!!)
+                    updateImageToProfile(imageUri!!)
                 }
             }
             ACTION_ALBUM_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     val resolver = requireActivity().contentResolver
-                    val bitmap = MediaStore.Images.Media.getBitmap(resolver, data.data)
+                    val bitMap = MediaStore.Images.Media.getBitmap(resolver, data.data)
                     imageUri = data.data!!
+                    Log.d(TAG, "Action_album : imageUri = $imageUri")
+                    val albumFile = fileFromContentUri(requireContext(), imageUri!!)
+                    imageUri = albumFile.toUri()
+                    Log.d(TAG, "Action_album : imageUri = $imageUri")
+                    displayHeadImage(bitMap)
+                    (requireActivity() as MainActivity).displaySmallHeadImage(bitMap)
                     uploadImageToStorage(imageUri!!)
-                    displayHeadImage(bitmap)
+                    updateImageToProfile(imageUri!!)
                 }
             }
 
         }
     }
 
-    private fun displayHeadImage(bitmap: Bitmap) {
+    fun displayHeadImage(bitmap: Bitmap) {
         binding.imMyHead.setImageBitmap(bitmap)
     }
 
@@ -298,6 +319,59 @@ class PersonFragment : Fragment() {
             }
         }
 
+    }
+
+
+    private fun fileFromContentUri(context: Context, contentUri: Uri): File {
+        // Preparing Temp file name
+        val fileExtension = getFileExtension(context, contentUri)
+        val fileName = "temp_file" + if (fileExtension != null) ".$fileExtension" else ""
+
+        // Creating Temp file
+        val tempFile = File(context.cacheDir, fileName)
+        tempFile.createNewFile()
+
+        try {
+            val oStream = FileOutputStream(tempFile)
+            val inputStream = context.contentResolver.openInputStream(contentUri)
+
+            inputStream?.let {
+                copy(inputStream, oStream)
+            }
+
+            oStream.flush()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return tempFile
+    }
+    private fun getFileExtension(context: Context, uri: Uri): String? {
+        val fileType: String? = context.contentResolver.getType(uri)
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(fileType)
+    }
+    @Throws(IOException::class)
+    private fun copy(source: InputStream, target: OutputStream) {
+        val buf = ByteArray(8192)
+        var length: Int
+        while (source.read(buf).also { length = it } > 0) {
+            target.write(buf, 0, length)
+        }
+    }
+
+    private fun updateImageToProfile(headUri:Uri) {
+        auth = FirebaseAuth.getInstance()
+        auth.currentUser?.let { user ->
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setPhotoUri(headUri)
+                .build()
+            user.updateProfile(profileUpdates)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(SignUpFragment.TAG, "new image is updated.")
+                    }
+                }
+        }
     }
 
 }

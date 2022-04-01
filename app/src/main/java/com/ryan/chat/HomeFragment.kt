@@ -1,6 +1,8 @@
 package com.ryan.chat
 
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import com.ryan.chat.databinding.FragmentHomeBinding
 import com.ryan.chat.databinding.RowChatroomBinding
 
@@ -23,7 +26,9 @@ class HomeFragment : Fragment() {
     }
     lateinit var binding: FragmentHomeBinding
     val roomViewModel by viewModels<RoomViewModel>()
+    private val headViewModel by viewModels<HeadViewModel>()
     var adapter = ChatRoomAdapter()
+    lateinit var auth : FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,6 +40,7 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -43,12 +49,30 @@ class HomeFragment : Fragment() {
         val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
         val login = prefLogin.getBoolean("login_state", false)
         val username = prefLogin.getString("login_userid", "")
+        val resolver = requireContext().contentResolver
 
-        if (login) {
-            parentActivity.binding.tvHomeLoginUserid.setText(username)
-            parentActivity.binding.imHead.visibility = View.VISIBLE
+        auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        if (user != null) {
+            Log.d(TAG, "onViewCreated: dispalyname = ${user.displayName}")
+            parentActivity.binding.tvHomeLoginUserid.text = user.displayName
+            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
+            parentActivity.displaySmallHeadImage(bitMap)
+        } else {
+            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
+            val defaultImageUri = Uri.parse(defaultImagePath)
+            parentActivity.binding.tvHomeLoginUserid.setText(getString(R.string.guest))
+            val bitMap = MediaStore.Images.Media.getBitmap(resolver, defaultImageUri)
+            parentActivity.displaySmallHeadImage(bitMap)
+
         }
-        else parentActivity.binding.tvHomeLoginUserid.setText("")
+
+
+//        if (login) {
+//            parentActivity.binding.tvHomeLoginUserid.setText(username)
+////            parentActivity.binding.imHead.visibility = View.VISIBLE
+//        }
+//        else parentActivity.binding.tvHomeLoginUserid.setText(getString(R.string.guest))
 
         binding.recycler.setHasFixedSize(true)
         binding.recycler.layoutManager = GridLayoutManager(requireContext(),2)

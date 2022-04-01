@@ -1,7 +1,9 @@
 package com.ryan.chat
 
+import android.content.ContentResolver
 import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +11,8 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.ryan.chat.databinding.FragmentLoginBinding
 import com.ryan.chat.databinding.FragmentPersonBinding
 
@@ -20,6 +24,7 @@ class LoginFragment : Fragment() {
         }
     }
     lateinit var binding: FragmentLoginBinding
+    private lateinit var auth : FirebaseAuth
     // 將打勾情形使用 remember紀錄起來，預設 false
     var remember = false
     override fun onCreateView(
@@ -41,6 +46,7 @@ class LoginFragment : Fragment() {
 
         // 呼叫"rem_username"的 Boolean，true代表上次打勾
         // 第一次登入 "rem_username"不會存在，預設給 false
+        // 上次的打勾狀態
         val checked = pref.getBoolean("rem_username", false)
 
         // 複製上次的打勾情形
@@ -52,6 +58,7 @@ class LoginFragment : Fragment() {
         // 由前面控制 chat資料夾裡的 USER鍵值對
         // 若上次按記住我，其值會是上次登入時的帳號，反之為空字串
         val rem_user = pref.getString("USER", "")
+        Log.d(TAG, "rem_user = $rem_user")
         binding.edLoginUserid.setText(rem_user)
 
         // 將上次打勾情形存入 remember
@@ -69,7 +76,7 @@ class LoginFragment : Fragment() {
             pref.edit().putBoolean("rem_username", remember).apply()
 
             // 如果 把打勾按掉，就把記錄的 userid改成空字串
-            if (!checked) {
+            if (!check) {
                 pref.edit().putString("USER", "").apply()
             }
         }
@@ -90,19 +97,21 @@ class LoginFragment : Fragment() {
             // 取目前輸入的帳號密碼準備做檢查
             val ed_user = binding.edLoginUserid.text.toString()
             val ed_pwd = binding.edLoginPwd.text.toString()
+            val email = "$ed_user@gmail.com"
             val check_user = prefUser.getString(ed_user,"")
             val check_pwd = prefUser.getString("${ed_user}pwd","")
             var error_text = ""
 
-            error_text =
-                when {
-                    check_user == "" -> getString(R.string.the_userid_is_not_exist)
-                    ed_pwd != check_pwd -> getString(R.string.wrong_password)
-                    else -> ""
-                }
+//            error_text =
+//                when {
+//                    check_user == "" -> getString(R.string.the_userid_is_not_exist)
+//                    ed_pwd != check_pwd -> getString(R.string.wrong_password)
+//                    else -> ""
+//                }
 
             if (error_text == "") {
                 val parentActivity =  requireActivity() as MainActivity
+                logIntoFirebase(email, ed_pwd, parentActivity.contentResolver)
                 prefLogin.edit()
                     .putBoolean("login_state", true)
                     .putString("login_userid", ed_user)
@@ -114,10 +123,11 @@ class LoginFragment : Fragment() {
                     pref.edit().putString("USER", ed_user).apply()
                     Log.d(TAG, "btLogin: 有重新記住帳號")
                 }
+
                 Log.d(TAG, "帳號密碼正確 並印出remember=${remember}")
                 parentActivity.binding.tvHomeLoginUserid.setText(ed_user)
-                parentActivity.binding.imHead.visibility = View.VISIBLE
-                parentActivity.binding.tvHomeLoginUserid.visibility = View.VISIBLE
+//                parentActivity.binding.imHead.visibility = View.VISIBLE
+//                parentActivity.binding.tvHomeLoginUserid.visibility = View.VISIBLE
 
                 // 登入成功對話框，按OK後都會跳轉到 MainA
                 // 登入成功後，會把登入狀態紀錄到本地資料夾
@@ -128,6 +138,9 @@ class LoginFragment : Fragment() {
                     .show()
                 val login = prefLogin.getBoolean("login_state", false)
                 Log.d(TAG, "login_state = $login")
+
+                // 清密碼
+                binding.edLoginPwd.text.clear()
                 parentActivity.supportFragmentManager.beginTransaction().run {
                     replace(R.id.main_container, parentActivity.mainFragments[1])
                     commit()
@@ -151,5 +164,29 @@ class LoginFragment : Fragment() {
                 commit()
             }
         }
+    }
+    private fun logIntoFirebase(email:String, password:String, resolver: ContentResolver) {
+        auth = FirebaseAuth.getInstance()
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    if (user != null) {
+                        Log.d(TAG, "logIntoFirebase: 成功登入")
+                    }
+                } else {
+                    Log.d(TAG, "logIntoFirebase: 登入失敗")
+                }
+            }
+    }
+
+    private fun updateUI(user: FirebaseUser, resolver: ContentResolver) {
+//        val resolver = requireContext().contentResolver
+        Log.d(TAG, "updateUI: photoUrl = ${user.photoUrl}")
+        val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
+        (requireActivity() as MainActivity).displaySmallHeadImage(bitMap)
+        PersonFragment.instance.displayHeadImage(bitMap)
+
+
     }
 }

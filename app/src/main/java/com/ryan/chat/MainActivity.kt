@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import com.ryan.chat.databinding.ActivityMainBinding
 import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.ImageView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -32,11 +33,15 @@ class MainActivity : AppCompatActivity() {
 //        val sysLanguage = Locale.getDefault().getLanguage()
 //        Log.d(TAG, "目前語言是 = $sysLanguage")
 
+        val defaultPath = "android.resource://$packageName/drawable/picpersonal"
+
+
         // 小頭貼設置方式為置中
         binding.imHead.scaleType = ImageView.ScaleType.CENTER_CROP
 
         // 初始化權限實例
         auth = FirebaseAuth.getInstance()
+//        auth.signOut()
 
 
         // 頭貼觀察者
@@ -44,8 +49,8 @@ class MainActivity : AppCompatActivity() {
             displaySmallHeadImage(bitmap)
         }
         // 使用頭貼 ViewModel 獲取此 user 當前 head
-        headViewModel.getHeadImageByUid(auth.uid!!)
-        headViewModel.getHeadImageByUserProfile(contentResolver)
+//        headViewModel.getHeadImageByUid(auth.uid!!)
+//        headViewModel.getHeadImageByUserProfile(contentResolver)
 
         binding.searchContainer.visibility = View.GONE
 
@@ -100,20 +105,22 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun displaySmallHeadImage(bitmap: Bitmap?) {
+    fun displaySmallHeadImage(bitmap: Bitmap?) {
         binding.imHead.setImageBitmap(bitmap)
     }
 
     override fun onStart() {
         super.onStart()
+        auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
+        Log.d(TAG, "onStart: currentUser = $currentUser")
         if (currentUser != null) {
-            reload()
+            updateUI()
         }
     }
 
-    private fun reload() {
-        //
+    private fun updateUI() {
+        headViewModel.getHeadImageByUserProfile(contentResolver)
     }
 
     private fun initFragments() {
