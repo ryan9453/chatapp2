@@ -75,7 +75,7 @@ class SearchFragment : Fragment() {
 
         override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
             val lightYearSearch = searchRooms[position]
-            holder.streaName.setText(lightYearSearch.nickname)
+            holder.streamName.setText(lightYearSearch.nickname)
             holder.title.setText(lightYearSearch.stream_title)
             holder.tags.setText(lightYearSearch.tags)
             Glide.with(this@SearchFragment).load(lightYearSearch.head_photo)
@@ -101,7 +101,7 @@ class SearchFragment : Fragment() {
 
     inner class SearchViewHolder(val binding: RowSearchroomBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        val streaName = binding.tvSearchStreamName
+        val streamName = binding.tvSearchStreamName
         val title = binding.tvSearchTitle
         val headPhoto = binding.imSearchHead
         val tags = binding.tvSearchTags

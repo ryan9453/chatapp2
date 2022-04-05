@@ -7,9 +7,8 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import com.ryan.chat.databinding.ActivityMainBinding
-import android.graphics.Bitmap
-import android.net.Uri
 import android.widget.ImageView
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -41,12 +40,13 @@ class MainActivity : AppCompatActivity() {
 
         // 初始化權限實例
         auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
 //        auth.signOut()
 
 
         // 頭貼觀察者
-        headViewModel.headImage.observe(this) { bitmap ->
-            displaySmallHeadImage(bitmap)
+        headViewModel.head.observe(this) { uri ->
+            displaySmallHeadImage(uri)
         }
         // 使用頭貼 ViewModel 獲取此 user 當前 head
 //        headViewModel.getHeadImageByUid(auth.uid!!)
@@ -61,6 +61,8 @@ class MainActivity : AppCompatActivity() {
 
             when (item.itemId) {
                 R.id.action_home -> {
+                    binding.imHead.visibility = View.VISIBLE
+                    binding.tvHomeLoginUserid.visibility = View.VISIBLE
                     supportFragmentManager.beginTransaction().run {
                         replace(R.id.main_container, mainFragments[1])
                         commit()
@@ -69,10 +71,12 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.action_person -> {
+                    binding.imHead.visibility = View.GONE
+                    binding.tvHomeLoginUserid.visibility = View.GONE
                     val prefLogin = getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
                     val login = prefLogin.getBoolean("login_state", false)
                     Log.d(TAG, "login_state = $login")
-                    if (login) {
+                    if (user != null) {
                         Log.d(TAG, "有登入去個人資訊")
                         supportFragmentManager.beginTransaction().run {
                             replace(R.id.main_container, mainFragments[2])
@@ -87,16 +91,18 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.action_search -> {
+                    binding.imHead.visibility = View.VISIBLE
+                    binding.tvHomeLoginUserid.visibility = View.VISIBLE
                     supportFragmentManager.beginTransaction().run {
                         replace(R.id.main_container, mainFragments[5])
                         commit()
                     }
                     binding.searchContainer.visibility = View.VISIBLE
-                    roomViewModel.chatRooms.observe(this) { rooms ->
-                        HomeFragment().adapter.submitRooms(rooms)
-                        Log.d(TAG, "第一間房間是 = ${rooms[0].nickname}")
-                    }
-                    roomViewModel.getHitRooms()
+//                    roomViewModel.chatRooms.observe(this) { rooms ->
+//                        HomeFragment().adapter.submitRooms(rooms)
+//                        Log.d(TAG, "第一間房間是 = ${rooms[0].nickname}")
+//                    }
+//                    roomViewModel.getHitRooms()
                     true
                 }
                 else -> true
@@ -105,17 +111,21 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun displaySmallHeadImage(bitmap: Bitmap?) {
-        binding.imHead.setImageBitmap(bitmap)
+    fun displaySmallHeadImage(uri:String) {
+        Glide.with(this).load(uri)
+            .into(binding.imHead)
     }
 
     override fun onStart() {
         super.onStart()
         auth = FirebaseAuth.getInstance()
-        val currentUser = auth.currentUser
-        Log.d(TAG, "onStart: currentUser = $currentUser")
-        if (currentUser != null) {
-            updateUI()
+        val user = auth.currentUser
+        Log.d(TAG, "onStart: currentUser = $user")
+        if (user != null) {
+            Log.d(TAG, "onStart: user.photoUri = ${user.photoUrl}")
+            Log.d(TAG, "onStart: user.displayName = ${user.displayName}")
+            Glide.with(this).load(user.photoUrl)
+                .into(binding.imHead)
         }
     }
 

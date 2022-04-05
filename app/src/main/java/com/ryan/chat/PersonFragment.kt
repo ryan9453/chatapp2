@@ -29,6 +29,7 @@ import com.google.firebase.storage.FirebaseStorage
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
+import com.bumptech.glide.Glide
 import com.google.common.io.ByteStreams.copy
 import com.google.common.io.Files.getFileExtension
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -70,6 +71,7 @@ class PersonFragment : Fragment() {
         binding.imMyHead.scaleType = ImageView.ScaleType.CENTER_CROP
         auth = FirebaseAuth.getInstance()
 
+        val parentActivity = requireActivity() as MainActivity
         val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
         var login_userid = prefLogin.getString("login_userid", "")
 
@@ -77,15 +79,19 @@ class PersonFragment : Fragment() {
         val prefUser = requireContext().getSharedPreferences("userinfo", AppCompatActivity.MODE_PRIVATE)
         // 用取得的帳號去 userinfo資料夾索引取得暱稱
         val username = prefUser.getString("${login_userid}name", "")
-        binding.tvPersonShowUserid.setText(login_userid)
-        binding.tvPersonShowName.setText(username)
+        binding.tvPersonShowUserid.text = auth.currentUser?.email
+        binding.tvPersonShowName.text = auth.currentUser?.displayName
+        Glide.with(parentActivity).load(auth.currentUser?.photoUrl.toString())
+            .into(parentActivity.binding.imHead)
+        headViewModel.getHeadImageByGlide()
+        headViewModel.head.value?.let { uri ->
+            displayHeadImage(uri)
+//            MainActivity().displaySmallHeadImage(uri)
+        }
 
-//        headViewModel.getHeadImageByUid(uid!!)
-
-        headViewModel.getHeadImageByUserProfile(requireActivity().contentResolver)
-
-        headViewModel.headImage.observe(viewLifecycleOwner) { bitmap ->
-            displayHeadImage(bitmap)
+        headViewModel.head.observe(viewLifecycleOwner) { uri ->
+            displayHeadImage(uri)
+//            parentActivity.displaySmallHeadImage(uri)
         }
 
         // 登出按鈕
@@ -102,9 +108,9 @@ class PersonFragment : Fragment() {
             val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
             val defaultImageUri = Uri.parse(defaultImagePath)
             val bitMap = MediaStore.Images.Media.getBitmap(resolver, defaultImageUri)
-            parentActivity.binding.tvHomeLoginUserid.text = getString(R.string.guest)
-            parentActivity.binding.imHead.setImageBitmap(bitMap)
-//            parentActivity.binding.imHead.visibility = View.GONE
+            parentActivity.binding.tvHomeLoginUserid.text = ""
+//            parentActivity.binding.imHead.setImageBitmap(bitMap)
+            parentActivity.binding.imHead.visibility = View.GONE
 
             parentActivity.supportFragmentManager.beginTransaction().run {
                 // mainFragments[3] = LoginFragment
@@ -234,6 +240,7 @@ class PersonFragment : Fragment() {
     // 從 RequestCode 去解析並作出相應的動作
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        val parentActivity = requireActivity() as MainActivity
 
         when (requestCode) {
             REQUEST_CAPTURE -> {
@@ -247,10 +254,15 @@ class PersonFragment : Fragment() {
             ACTION_CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     val resolver = requireActivity().contentResolver
-                    val bitMap = MediaStore.Images.Media.getBitmap(resolver, imageUri)
-                    displayHeadImage(bitMap)
-                    (requireActivity() as MainActivity).displaySmallHeadImage(bitMap)
-                    uploadImageToStorage(imageUri!!)
+//                    val bitMap = MediaStore.Images.Media.getBitmap(resolver, imageUri)
+                    val imageString = imageUri.toString()
+                    displayHeadImage(imageString)
+                    parentActivity.displaySmallHeadImage(imageString)
+
+                    // 上傳至 storage
+//                    uploadImageToStorage(imageUri!!)
+
+                    // 更新個人資訊
                     updateImageToProfile(imageUri!!)
                 }
             }
@@ -260,12 +272,16 @@ class PersonFragment : Fragment() {
                     val bitMap = MediaStore.Images.Media.getBitmap(resolver, data.data)
                     imageUri = data.data!!
                     Log.d(TAG, "Action_album : imageUri = $imageUri")
-                    val albumFile = fileFromContentUri(requireContext(), imageUri!!)
-                    imageUri = albumFile.toUri()
+//                    val albumFile = fileFromContentUri(requireContext(), imageUri!!)
+//                    imageUri = albumFile.toUri()
+                    val imageString = imageUri.toString()
                     Log.d(TAG, "Action_album : imageUri = $imageUri")
-                    displayHeadImage(bitMap)
-                    (requireActivity() as MainActivity).displaySmallHeadImage(bitMap)
-                    uploadImageToStorage(imageUri!!)
+                    displayHeadImage(imageString)
+                    parentActivity.displaySmallHeadImage(imageString)
+                    // 上傳至 storage
+//                    uploadImageToStorage(imageUri!!)
+
+                    // 更新個人資訊
                     updateImageToProfile(imageUri!!)
                 }
             }
@@ -273,8 +289,9 @@ class PersonFragment : Fragment() {
         }
     }
 
-    fun displayHeadImage(bitmap: Bitmap) {
-        binding.imMyHead.setImageBitmap(bitmap)
+    fun displayHeadImage(uri : String) {
+        Glide.with(this).load(uri)
+            .into(binding.imMyHead)
     }
 
 

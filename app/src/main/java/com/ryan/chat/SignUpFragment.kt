@@ -71,7 +71,7 @@ class SignUpFragment : Fragment() {
             if (errorText == "") {
 
                 signUp(email, userId, pwd, nickName, db)
-                updateProfileFirst(nickName)
+//                updateProfileFirst(nickName)
 
             // 錯誤訊息對話框
             } else {
@@ -199,6 +199,9 @@ class SignUpFragment : Fragment() {
                 val user = auth.currentUser
                 val uid = user?.uid
 
+                // 將預設照片跟暱稱上傳至 firebase
+                updateProfileFirst(nickName)
+
                 // 將用戶資訊以 firestore 的儲存格式存入
                 val userInfo = hashMapOf(
                     "Nickname" to nickName
@@ -215,7 +218,7 @@ class SignUpFragment : Fragment() {
                 // 跳轉回 Home
                 parentActivity.supportFragmentManager.beginTransaction().run {
                     replace(R.id.main_container, parentActivity.mainFragments[1])
-                    parentActivity.binding.tvHomeLoginUserid.setText(userId)
+                    parentActivity.binding.tvHomeLoginUserid.text = userId
                     commit()
                 }
 
@@ -232,6 +235,7 @@ class SignUpFragment : Fragment() {
     private fun updateProfileFirst(nickName: String) {
         val headUri = Uri.parse("android.resource://${requireContext().packageName}/${R.drawable.picpersonal}")
         auth.currentUser?.let { user ->
+            Log.d(TAG, "updateProfileFirst: nickname = $nickName")
             val profileUpdates = UserProfileChangeRequest.Builder()
                 .setDisplayName(nickName)
                 .setPhotoUri(headUri)

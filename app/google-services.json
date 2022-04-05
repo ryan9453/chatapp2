@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "337394854624",
+    "project_id": "chat2-6df8d",
+    "storage_bucket": "chat2-6df8d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:337394854624:android:6537bec3ca02e2fb783e85",
+        "android_client_info": {
+          "package_name": "com.ryan.chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "337394854624-boq5r24rc59igqua7hproa0odvvpu25e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXQI-u3rnKdndxrTiDlpvETeEyfzvdwlU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "337394854624-boq5r24rc59igqua7hproa0odvvpu25e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

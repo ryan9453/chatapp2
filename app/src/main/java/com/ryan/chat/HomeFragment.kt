@@ -53,17 +53,24 @@ class HomeFragment : Fragment() {
 
         auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
+        headViewModel.getHeadImageByGlide()
+        headViewModel.head.observe(viewLifecycleOwner) { uri ->
+            parentActivity.displaySmallHeadImage(uri)
+        }
         if (user != null) {
             Log.d(TAG, "onViewCreated: dispalyname = ${user.displayName}")
+            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
             parentActivity.binding.tvHomeLoginUserid.text = user.displayName
-            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
-            parentActivity.displaySmallHeadImage(bitMap)
+//            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
+            parentActivity.binding.imHead.visibility = View.VISIBLE
+            Glide.with(parentActivity).load(headViewModel.head.value)
+                .into(parentActivity.binding.imHead)
         } else {
             val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
-            val defaultImageUri = Uri.parse(defaultImagePath)
-            parentActivity.binding.tvHomeLoginUserid.setText(getString(R.string.guest))
-            val bitMap = MediaStore.Images.Media.getBitmap(resolver, defaultImageUri)
-            parentActivity.displaySmallHeadImage(bitMap)
+            val defaultImageUri = Uri.parse(defaultImagePath).toString()
+            parentActivity.binding.tvHomeLoginUserid.text = ""
+            parentActivity.binding.imHead.visibility = View.GONE
+//            parentActivity.displaySmallHeadImage(defaultImageUri)
 
         }
 

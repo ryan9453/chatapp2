@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import com.ryan.chat.databinding.FragmentHitBinding
 import com.ryan.chat.databinding.RowHitroomBinding
 
@@ -21,6 +22,7 @@ class HitFragment : Fragment() {
             HitFragment()
         }
     }
+    lateinit var auth:FirebaseAuth
     lateinit var binding: FragmentHitBinding
     val roomViewModel by viewModels<RoomViewModel>()
     var adapter = HitRoomAdapter()
@@ -39,16 +41,19 @@ class HitFragment : Fragment() {
 
         // 由此處開始寫 code
         val parentActivity = requireActivity() as MainActivity
-        val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
-        var login = prefLogin.getBoolean("login_state", false)
-        var username = prefLogin.getString("login_userid", "")
+//        val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
+//        var login = prefLogin.getBoolean("login_state", false)
+//        var username = prefLogin.getString("login_userid", "")
+        auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
 
-        if (login) {
-            parentActivity.binding.tvHomeLoginUserid.setText(username)
+        if (user != null) {
+            parentActivity.binding.tvHomeLoginUserid.text = user.displayName
             parentActivity.binding.imHead.visibility = View.VISIBLE
-            parentActivity.binding.tvHomeLoginUserid.setText(username)
+            Glide.with(parentActivity).load(user.photoUrl)
+                .into(parentActivity.binding.imHead)
         }
-        else parentActivity.binding.tvHomeLoginUserid.setText("")
+        else parentActivity.binding.tvHomeLoginUserid.text = ""
 
         binding.recyclerHit.setHasFixedSize(true)
         binding.recyclerHit.layoutManager = GridLayoutManager(requireContext(), 2)

@@ -20,6 +20,7 @@ class HeadViewModel : ViewModel() {
     }
     lateinit var auth : FirebaseAuth
     val headImage = MutableLiveData<Bitmap>()
+    val head = MutableLiveData<String>()
 
     fun getHeadImageByUid(uid: String) {
         val storage = FirebaseStorage.getInstance()
@@ -45,6 +46,22 @@ class HeadViewModel : ViewModel() {
             val bitMap = MediaStore.Images.Media.getBitmap(resolver, headUri)
             headImage.postValue(bitMap)
         }
+    }
+
+    fun getHeadImageByGlide() {
+        auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
+        val defaultImageUri = Uri.parse(defaultImagePath)
+
+        user?.let {
+            val headUri = if (user.photoUrl != null) user.photoUrl else defaultImageUri
+            Log.d(TAG, "headUri = $headUri")
+
+            val headUriString = headUri.toString()
+            head.postValue(headUriString)
+        }
+
     }
 
 

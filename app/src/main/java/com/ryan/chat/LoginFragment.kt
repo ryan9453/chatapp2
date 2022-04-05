@@ -184,8 +184,7 @@ class LoginFragment : Fragment() {
 //        val resolver = requireContext().contentResolver
         Log.d(TAG, "updateUI: photoUrl = ${user.photoUrl}")
         val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
-        (requireActivity() as MainActivity).displaySmallHeadImage(bitMap)
-        PersonFragment.instance.displayHeadImage(bitMap)
+//        PersonFragment.instance.displayHeadImage(bitMap)
 
 
     }
