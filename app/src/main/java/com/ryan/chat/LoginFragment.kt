@@ -113,7 +113,7 @@ class LoginFragment : Fragment() {
 //                }
 
             if (error_text == "") {
-                val parentActivity =  requireActivity() as MainActivity
+//                val parentActivity =  requireActivity() as MainActivity
                 logIntoFirebase(email, ed_pwd)
                 prefLogin.edit()
                     .putBoolean("login_state", true)

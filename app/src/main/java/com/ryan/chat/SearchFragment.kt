@@ -26,6 +26,7 @@ class SearchFragment : Fragment() {
     lateinit var binding: FragmentSearchBinding
     lateinit var adapter : SearchRoomAdapter
     val roomViewModel by viewModels<RoomViewModel>()
+    private val userViewModel by viewModels<UserViewModel>()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -39,10 +40,13 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val parentActivity = requireActivity() as MainActivity
-        auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
+//        auth = FirebaseAuth.getInstance()
+//        val user = auth.currentUser
+        userViewModel.getFireUser()
+        val user = userViewModel.userLive.value
 
-        Log.d(TAG, "onViewCreated: user = $user")
+
+//        Log.d(TAG, "onViewCreated: user = $user")
 
         if (user != null) {
             parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE

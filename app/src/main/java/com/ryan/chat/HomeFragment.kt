@@ -1,8 +1,6 @@
 package com.ryan.chat
 
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -26,7 +24,7 @@ class HomeFragment : Fragment() {
     }
     lateinit var binding: FragmentHomeBinding
     private val roomViewModel by viewModels<RoomViewModel>()
-    private val headViewModel by viewModels<HeadViewModel>()
+    private val userViewModel by viewModels<UserViewModel>()
     var adapter = ChatRoomAdapter()
     lateinit var auth : FirebaseAuth
 
@@ -49,22 +47,23 @@ class HomeFragment : Fragment() {
         val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
         val login = prefLogin.getBoolean("login_state", false)
         val username = prefLogin.getString("login_userid", "")
-        val resolver = requireContext().contentResolver
 
-        auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
-        headViewModel.getHeadImageByGlide()
-        headViewModel.head.observe(viewLifecycleOwner) { uri ->
-            parentActivity.displaySmallHeadImage(uri)
-        }
-        Log.d(TAG, "onViewCreated: user = $user")
+//        val user = userViewModel.user.value
+//        userViewModel.user.observe(viewLifecycleOwner) { user ->
+//            parentActivity.displaySmallHeadImage(user.photoUrl.toString())
+//        }
+//        userViewModel.head.observe(viewLifecycleOwner) { uri ->
+//            parentActivity.displaySmallHeadImage(uri)
+//        }
+//        userViewModel.getHeadImageByGlide()
+//        Log.d(TAG, "onViewCreated: user = $user")
 //        if (user != null) {
 //            Log.d(TAG, "onViewCreated: displayName = ${user.displayName}")
 //            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
 //            parentActivity.binding.tvHomeLoginNickname.text = user.displayName
 ////            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
 //            parentActivity.binding.imHead.visibility = View.VISIBLE
-//            Glide.with(parentActivity).load(headViewModel.head.value)
+//            Glide.with(parentActivity).load(userViewModel.head.value)
 //                .into(parentActivity.binding.imHead)
 //        }
 //        else {
@@ -106,19 +105,32 @@ class HomeFragment : Fragment() {
         super.onStart()
 
         val parentActivity = requireActivity() as MainActivity
-        auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
-        Log.d(TAG, "onStart: user = $user")
+//        auth = FirebaseAuth.getInstance()
+//        val user = auth.currentUser
+//        userViewModel.getFireUser()
+        userViewModel.getFireUserInfo()
 
-        if (user != null) {
-            Log.d(TAG, "onViewCreated: displayName = ${user.displayName}")
-            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
-            parentActivity.binding.tvHomeLoginNickname.text = user.displayName
-//            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
-            parentActivity.binding.imHead.visibility = View.VISIBLE
-            Glide.with(parentActivity).load(headViewModel.head.value)
-                .into(parentActivity.binding.imHead)
+        userViewModel.nickNameLive.observe(viewLifecycleOwner) { nickName ->
+            parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
+            parentActivity.binding.tvHomeLoginNickname.text = nickName
         }
+        userViewModel.headLive.observe(viewLifecycleOwner) { uri ->
+            Glide.with(parentActivity).load(uri)
+                .into(parentActivity.binding.imHead)
+            parentActivity.binding.imHead.visibility = View.VISIBLE
+        }
+
+        userViewModel.userLive.observe(viewLifecycleOwner) { user ->
+            Log.d(TAG, "onStart: user = $user")
+            if (user == null) {
+                parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
+                parentActivity.binding.imHead.visibility = View.GONE
+                Log.d(TAG, "onStart: 關掉")
+            }
+        }
+//        val user = userViewModel.user.value
+
+
     }
 
     inner class ChatRoomAdapter : RecyclerView.Adapter<BindingViewHolder>() {

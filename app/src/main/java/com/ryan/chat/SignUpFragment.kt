@@ -215,18 +215,18 @@ class SignUpFragment : Fragment() {
                     .addOnFailureListener { e -> Log.w(TAG, "Error writting document", e) }
 
 
-                // 跳轉回 Home
-                parentActivity.supportFragmentManager.beginTransaction().run {
-                    replace(R.id.main_container, parentActivity.mainFragments[1])
-                    parentActivity.binding.tvHomeLoginNickname.text = nickName
-                    commit()
-                }
-
-                // 清除輸入框
-                binding.edSignName.text.clear()
-                binding.edSignPwd.text.clear()
-                binding.edSignUserid.text.clear()
-                binding.edSignPwdAgain.text.clear()
+//                // 跳轉回 Home
+//                parentActivity.supportFragmentManager.beginTransaction().run {
+//                    replace(R.id.main_container, parentActivity.mainFragments[1])
+//                    parentActivity.binding.tvHomeLoginNickname.text = nickName
+//                    commit()
+//                }
+//
+//                // 清除輸入框
+//                binding.edSignName.text.clear()
+//                binding.edSignPwd.text.clear()
+//                binding.edSignUserid.text.clear()
+//                binding.edSignPwdAgain.text.clear()
 
             }
         }
@@ -243,9 +243,26 @@ class SignUpFragment : Fragment() {
             user.updateProfile(profileUpdates)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
+                        updateUI(nickName)
                         Log.d(TAG, "User first profile updated.")
                     }
                 }
         }
+    }
+
+    fun updateUI(nickName: String) {
+        val parentActivity = requireActivity() as MainActivity
+         //跳轉回 Home
+                parentActivity.supportFragmentManager.beginTransaction().run {
+                    replace(R.id.main_container, parentActivity.mainFragments[1])
+                    parentActivity.binding.tvHomeLoginNickname.text = nickName
+                    commit()
+                }
+
+                // 清除輸入框
+                binding.edSignName.text.clear()
+                binding.edSignPwd.text.clear()
+                binding.edSignUserid.text.clear()
+                binding.edSignPwdAgain.text.clear()
     }
 }

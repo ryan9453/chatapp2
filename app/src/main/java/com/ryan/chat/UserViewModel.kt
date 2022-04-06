@@ -9,18 +9,43 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
-import kotlin.math.log
 
-class HeadViewModel : ViewModel() {
+class UserViewModel : ViewModel() {
 
     companion object {
-        val TAG = HeadViewModel::class.java.simpleName
+        val TAG = UserViewModel::class.java.simpleName
     }
     lateinit var auth : FirebaseAuth
     val headImage = MutableLiveData<Bitmap>()
-    val head = MutableLiveData<String>()
+    val headLive = MutableLiveData<String>()
+    val userLive = MutableLiveData<FirebaseUser?>()
+    val nickNameLive = MutableLiveData<String>()
+    val userIdLive = MutableLiveData<String>()
+
+    fun getFireUser() {
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+        userLive.postValue(currentUser)
+    }
+
+    fun getFireUserInfo() {
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+        userLive.postValue(currentUser)
+        if (currentUser != null) {
+            val email = currentUser.email
+            val userId = email?.subSequence(0, email.indexOf('@'))
+            headLive.postValue(auth.currentUser?.photoUrl.toString())
+            nickNameLive.postValue(auth.currentUser?.displayName)
+            userIdLive.postValue(userId.toString())
+
+        }
+        Log.d(TAG, "getFireUserInfo: user = ${userLive.value}")
+    }
+
 
     fun getHeadImageByUid(uid: String) {
         val storage = FirebaseStorage.getInstance()
@@ -59,7 +84,7 @@ class HeadViewModel : ViewModel() {
             Log.d(TAG, "headUri = $headUri")
 
             val headUriString = headUri.toString()
-            head.postValue(headUriString)
+            headLive.postValue(headUriString)
         }
 
     }

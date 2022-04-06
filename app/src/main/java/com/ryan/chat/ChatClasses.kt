@@ -179,3 +179,4 @@ data class NoticeBody(
     val text: String,
     val type: String
 )
+
