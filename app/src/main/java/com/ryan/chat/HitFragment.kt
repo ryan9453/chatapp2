@@ -48,12 +48,12 @@ class HitFragment : Fragment() {
         val user = auth.currentUser
 
         if (user != null) {
-            parentActivity.binding.tvHomeLoginUserid.text = user.displayName
+            parentActivity.binding.tvHomeLoginNickname.text = user.displayName
             parentActivity.binding.imHead.visibility = View.VISIBLE
             Glide.with(parentActivity).load(user.photoUrl)
                 .into(parentActivity.binding.imHead)
         }
-        else parentActivity.binding.tvHomeLoginUserid.text = ""
+        else parentActivity.binding.tvHomeLoginNickname.text = ""
 
         binding.recyclerHit.setHasFixedSize(true)
         binding.recyclerHit.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -117,7 +117,7 @@ class HitFragment : Fragment() {
             parentActivity.binding.bottonNavBar.visibility = View.GONE
             parentActivity.binding.searchContainer.visibility = View.GONE
             parentActivity.binding.imHead.visibility = View.GONE
-            parentActivity.binding.tvHomeLoginUserid.visibility = View.GONE
+            parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
         }
     }
 }

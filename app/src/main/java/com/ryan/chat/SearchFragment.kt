@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import com.ryan.chat.databinding.FragmentSearchBinding
 import com.ryan.chat.databinding.RowSearchroomBinding
 
@@ -21,6 +22,7 @@ class SearchFragment : Fragment() {
             SearchFragment()
         }
     }
+    lateinit var auth : FirebaseAuth
     lateinit var binding: FragmentSearchBinding
     lateinit var adapter : SearchRoomAdapter
     val roomViewModel by viewModels<RoomViewModel>()
@@ -35,6 +37,20 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val parentActivity = requireActivity() as MainActivity
+        auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+
+        Log.d(TAG, "onViewCreated: user = $user")
+
+        if (user != null) {
+            parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
+            parentActivity.binding.imHead.visibility = View.VISIBLE
+        } else {
+            parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
+            parentActivity.binding.imHead.visibility = View.GONE
+        }
 
         binding.searchRecycler.setHasFixedSize(true)
         binding.searchRecycler.layoutManager = GridLayoutManager(requireContext(), 2)

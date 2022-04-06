@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
         // 初始化權限實例
         auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
+//        val user = auth.currentUser
 //        auth.signOut()
 
 
@@ -58,11 +58,19 @@ class MainActivity : AppCompatActivity() {
 
 
         binding.bottonNavBar.setOnItemSelectedListener { item ->
+            auth = FirebaseAuth.getInstance()
+            val user = auth.currentUser
+
 
             when (item.itemId) {
                 R.id.action_home -> {
-                    binding.imHead.visibility = View.VISIBLE
-                    binding.tvHomeLoginUserid.visibility = View.VISIBLE
+                    if (user != null) {
+                        binding.tvHomeLoginNickname.visibility = View.VISIBLE
+                        binding.imHead.visibility = View.VISIBLE
+                    } else {
+                        binding.tvHomeLoginNickname.visibility = View.GONE
+                        binding.imHead.visibility = View.GONE
+                    }
                     supportFragmentManager.beginTransaction().run {
                         replace(R.id.main_container, mainFragments[1])
                         commit()
@@ -72,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.action_person -> {
                     binding.imHead.visibility = View.GONE
-                    binding.tvHomeLoginUserid.visibility = View.GONE
+                    binding.tvHomeLoginNickname.visibility = View.GONE
                     val prefLogin = getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
                     val login = prefLogin.getBoolean("login_state", false)
                     Log.d(TAG, "login_state = $login")
@@ -91,8 +99,13 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.action_search -> {
-                    binding.imHead.visibility = View.VISIBLE
-                    binding.tvHomeLoginUserid.visibility = View.VISIBLE
+                    if (user != null) {
+                        binding.tvHomeLoginNickname.visibility = View.VISIBLE
+                        binding.imHead.visibility = View.VISIBLE
+                    } else {
+                        binding.tvHomeLoginNickname.visibility = View.GONE
+                        binding.imHead.visibility = View.GONE
+                    }
                     supportFragmentManager.beginTransaction().run {
                         replace(R.id.main_container, mainFragments[5])
                         commit()

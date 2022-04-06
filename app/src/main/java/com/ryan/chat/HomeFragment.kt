@@ -25,7 +25,7 @@ class HomeFragment : Fragment() {
         }
     }
     lateinit var binding: FragmentHomeBinding
-    val roomViewModel by viewModels<RoomViewModel>()
+    private val roomViewModel by viewModels<RoomViewModel>()
     private val headViewModel by viewModels<HeadViewModel>()
     var adapter = ChatRoomAdapter()
     lateinit var auth : FirebaseAuth
@@ -57,22 +57,25 @@ class HomeFragment : Fragment() {
         headViewModel.head.observe(viewLifecycleOwner) { uri ->
             parentActivity.displaySmallHeadImage(uri)
         }
-        if (user != null) {
-            Log.d(TAG, "onViewCreated: dispalyname = ${user.displayName}")
-            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
-            parentActivity.binding.tvHomeLoginUserid.text = user.displayName
-//            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
-            parentActivity.binding.imHead.visibility = View.VISIBLE
-            Glide.with(parentActivity).load(headViewModel.head.value)
-                .into(parentActivity.binding.imHead)
-        } else {
-            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
-            val defaultImageUri = Uri.parse(defaultImagePath).toString()
-            parentActivity.binding.tvHomeLoginUserid.text = ""
-            parentActivity.binding.imHead.visibility = View.GONE
-//            parentActivity.displaySmallHeadImage(defaultImageUri)
-
-        }
+        Log.d(TAG, "onViewCreated: user = $user")
+//        if (user != null) {
+//            Log.d(TAG, "onViewCreated: displayName = ${user.displayName}")
+//            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
+//            parentActivity.binding.tvHomeLoginNickname.text = user.displayName
+////            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
+//            parentActivity.binding.imHead.visibility = View.VISIBLE
+//            Glide.with(parentActivity).load(headViewModel.head.value)
+//                .into(parentActivity.binding.imHead)
+//        }
+//        else {
+//            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
+//            val defaultImageUri = Uri.parse(defaultImagePath).toString()
+//            Log.d(TAG, "onViewCreated: 沒登入")
+//            parentActivity.binding.tvHomeLoginNickname.text = ""
+//            parentActivity.binding.imHead.visibility = View.GONE
+////            parentActivity.displaySmallHeadImage(defaultImageUri)
+//
+//        }
 
 
 //        if (login) {
@@ -98,6 +101,26 @@ class HomeFragment : Fragment() {
 
 
     }
+
+    override fun onStart() {
+        super.onStart()
+
+        val parentActivity = requireActivity() as MainActivity
+        auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        Log.d(TAG, "onStart: user = $user")
+
+        if (user != null) {
+            Log.d(TAG, "onViewCreated: displayName = ${user.displayName}")
+            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
+            parentActivity.binding.tvHomeLoginNickname.text = user.displayName
+//            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
+            parentActivity.binding.imHead.visibility = View.VISIBLE
+            Glide.with(parentActivity).load(headViewModel.head.value)
+                .into(parentActivity.binding.imHead)
+        }
+    }
+
     inner class ChatRoomAdapter : RecyclerView.Adapter<BindingViewHolder>() {
         val chatRooms = mutableListOf<Lightyear>()
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BindingViewHolder {
@@ -148,7 +171,7 @@ class HomeFragment : Fragment() {
         parentActivity.binding.bottonNavBar.visibility = View.GONE
         parentActivity.binding.searchContainer.visibility = View.GONE
         parentActivity.binding.imHead.visibility = View.GONE
-        parentActivity.binding.tvHomeLoginUserid.visibility = View.GONE
+        parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
 
     }
 

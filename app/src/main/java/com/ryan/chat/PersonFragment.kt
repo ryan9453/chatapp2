@@ -78,8 +78,11 @@ class PersonFragment : Fragment() {
         // 顯示用戶暱稱和帳號用
         val prefUser = requireContext().getSharedPreferences("userinfo", AppCompatActivity.MODE_PRIVATE)
         // 用取得的帳號去 userinfo資料夾索引取得暱稱
-        val username = prefUser.getString("${login_userid}name", "")
-        binding.tvPersonShowUserid.text = auth.currentUser?.email
+//        val username = prefUser.getString("${login_userid}name", "")
+        val email = auth.currentUser?.email
+        val userId = email?.subSequence(0, email.indexOf('@'))
+        Log.d(TAG, "onViewCreated: userId = $userId")
+        binding.tvPersonShowUserid.text = userId
         binding.tvPersonShowName.text = auth.currentUser?.displayName
         Glide.with(parentActivity).load(auth.currentUser?.photoUrl.toString())
             .into(parentActivity.binding.imHead)
@@ -98,7 +101,7 @@ class PersonFragment : Fragment() {
         // 登出後，將 login_state 改成 false 存回 shared_pref
         // 將首頁的 小頭貼跟名字隱藏
         binding.btLogout.setOnClickListener {
-            val parentActivity =  requireActivity() as MainActivity
+//            val parentActivity =  requireActivity() as MainActivity
             prefLogin.edit()
                 .putBoolean("login_state", false)
                 .putString("login_userid", "")
@@ -108,9 +111,11 @@ class PersonFragment : Fragment() {
             val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
             val defaultImageUri = Uri.parse(defaultImagePath)
             val bitMap = MediaStore.Images.Media.getBitmap(resolver, defaultImageUri)
-            parentActivity.binding.tvHomeLoginUserid.text = ""
+            parentActivity.binding.tvHomeLoginNickname.text = ""
 //            parentActivity.binding.imHead.setImageBitmap(bitMap)
             parentActivity.binding.imHead.visibility = View.GONE
+            Glide.with(parentActivity).load(defaultImageUri.toString())
+                .into(parentActivity.binding.imHead)
 
             parentActivity.supportFragmentManager.beginTransaction().run {
                 // mainFragments[3] = LoginFragment

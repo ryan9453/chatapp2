@@ -218,7 +218,7 @@ class SignUpFragment : Fragment() {
                 // 跳轉回 Home
                 parentActivity.supportFragmentManager.beginTransaction().run {
                     replace(R.id.main_container, parentActivity.mainFragments[1])
-                    parentActivity.binding.tvHomeLoginUserid.text = userId
+                    parentActivity.binding.tvHomeLoginNickname.text = nickName
                     commit()
                 }
 
