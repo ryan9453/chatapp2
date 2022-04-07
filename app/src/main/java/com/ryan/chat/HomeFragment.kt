@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,9 +25,8 @@ class HomeFragment : Fragment() {
     }
     lateinit var binding: FragmentHomeBinding
     private val roomViewModel by viewModels<RoomViewModel>()
-    private val userViewModel by viewModels<UserViewModel>()
+    private val userViewModel by activityViewModels<UserViewModel>()
     var adapter = ChatRoomAdapter()
-    lateinit var auth : FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,7 +34,6 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentHomeBinding.inflate(inflater)
-//        return super.onCreateView(inflater, container, savedInstanceState)
         return binding.root
     }
 
@@ -42,47 +41,8 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 由此處開始寫 code
-        val parentActivity = requireActivity() as MainActivity
-        val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
-        val login = prefLogin.getBoolean("login_state", false)
-        val username = prefLogin.getString("login_userid", "")
 
-//        val user = userViewModel.user.value
-//        userViewModel.user.observe(viewLifecycleOwner) { user ->
-//            parentActivity.displaySmallHeadImage(user.photoUrl.toString())
-//        }
-//        userViewModel.head.observe(viewLifecycleOwner) { uri ->
-//            parentActivity.displaySmallHeadImage(uri)
-//        }
-//        userViewModel.getHeadImageByGlide()
-//        Log.d(TAG, "onViewCreated: user = $user")
-//        if (user != null) {
-//            Log.d(TAG, "onViewCreated: displayName = ${user.displayName}")
-//            Log.d(TAG, "onViewCreated: head = ${user.photoUrl}")
-//            parentActivity.binding.tvHomeLoginNickname.text = user.displayName
-////            val bitMap = MediaStore.Images.Media.getBitmap(resolver, user.photoUrl)
-//            parentActivity.binding.imHead.visibility = View.VISIBLE
-//            Glide.with(parentActivity).load(userViewModel.head.value)
-//                .into(parentActivity.binding.imHead)
-//        }
-//        else {
-//            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
-//            val defaultImageUri = Uri.parse(defaultImagePath).toString()
-//            Log.d(TAG, "onViewCreated: 沒登入")
-//            parentActivity.binding.tvHomeLoginNickname.text = ""
-//            parentActivity.binding.imHead.visibility = View.GONE
-////            parentActivity.displaySmallHeadImage(defaultImageUri)
-//
-//        }
-
-
-//        if (login) {
-//            parentActivity.binding.tvHomeLoginUserid.setText(username)
-////            parentActivity.binding.imHead.visibility = View.VISIBLE
-//        }
-//        else parentActivity.binding.tvHomeLoginUserid.setText(getString(R.string.guest))
-
+        // 設置聊天室清單
         binding.recycler.setHasFixedSize(true)
         binding.recycler.layoutManager = GridLayoutManager(requireContext(),2)
         binding.recycler.adapter = adapter
@@ -93,43 +53,8 @@ class HomeFragment : Fragment() {
         roomViewModel.chatRooms.observe(viewLifecycleOwner) { rooms ->
             adapter.submitRooms(rooms)
         }
+        // 取得全部房間
         roomViewModel.getAllRooms()
-        Log.d(TAG, "跑過 getAllRooms")
-//        roomViewModel.getHitRooms()
-//        Log.d(TAG, "跑過 getHitRooms")
-
-
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        val parentActivity = requireActivity() as MainActivity
-//        auth = FirebaseAuth.getInstance()
-//        val user = auth.currentUser
-//        userViewModel.getFireUser()
-        userViewModel.getFireUserInfo()
-
-        userViewModel.nickNameLive.observe(viewLifecycleOwner) { nickName ->
-            parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
-            parentActivity.binding.tvHomeLoginNickname.text = nickName
-        }
-        userViewModel.headLive.observe(viewLifecycleOwner) { uri ->
-            Glide.with(parentActivity).load(uri)
-                .into(parentActivity.binding.imHead)
-            parentActivity.binding.imHead.visibility = View.VISIBLE
-        }
-
-        userViewModel.userLive.observe(viewLifecycleOwner) { user ->
-            Log.d(TAG, "onStart: user = $user")
-            if (user == null) {
-                parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
-                parentActivity.binding.imHead.visibility = View.GONE
-                Log.d(TAG, "onStart: 關掉")
-            }
-        }
-//        val user = userViewModel.user.value
-
 
     }
 
@@ -142,9 +67,9 @@ class HomeFragment : Fragment() {
 
         override fun onBindViewHolder(holder: BindingViewHolder, position: Int) {
             val lightYear = chatRooms[position]
-            holder.streamName.setText(lightYear.nickname)
-            holder.title.setText(lightYear.stream_title)
-            holder.tags.setText(lightYear.tags)
+            holder.streamName.text = lightYear.nickname
+            holder.title.text = lightYear.stream_title
+            holder.tags.text = lightYear.tags
             Glide.with(this@HomeFragment).load(lightYear.head_photo)
                 .into(holder.headPhoto)
             holder.itemView.setOnClickListener {
@@ -158,10 +83,7 @@ class HomeFragment : Fragment() {
         fun submitRooms(rooms: List<Lightyear>) {
             chatRooms.clear()
             chatRooms.addAll(rooms)
-            Log.d(TAG, "rooms of num = ${rooms.size}")
-            Log.d(TAG, "第一間房間是 = ${chatRooms[0].nickname}")
             notifyDataSetChanged()
-            Log.d(TAG, "第一間房間是 = ${chatRooms[0].nickname}")
         }
 
     }

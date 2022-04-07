@@ -1,5 +1,6 @@
 package com.ryan.chat
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,12 +28,12 @@ class SearchFragment : Fragment() {
     lateinit var binding: FragmentSearchBinding
     lateinit var adapter : SearchRoomAdapter
     val roomViewModel by viewModels<RoomViewModel>()
-    private val userViewModel by viewModels<UserViewModel>()
+    private val userViewModel by activityViewModels<UserViewModel>()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentSearchBinding.inflate(inflater)
         return binding.root
     }
@@ -39,23 +41,7 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val parentActivity = requireActivity() as MainActivity
-//        auth = FirebaseAuth.getInstance()
-//        val user = auth.currentUser
-        userViewModel.getFireUser()
-        val user = userViewModel.userLive.value
-
-
-//        Log.d(TAG, "onViewCreated: user = $user")
-
-        if (user != null) {
-            parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
-            parentActivity.binding.imHead.visibility = View.VISIBLE
-        } else {
-            parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
-            parentActivity.binding.imHead.visibility = View.GONE
-        }
-
+        // 設置搜尋結果聊天室的清單元件
         binding.searchRecycler.setHasFixedSize(true)
         binding.searchRecycler.layoutManager = GridLayoutManager(requireContext(), 2)
         adapter = SearchRoomAdapter()
@@ -65,6 +51,7 @@ class SearchFragment : Fragment() {
             adapter.submitRooms(rooms)
         }
 
+        // SearchView 的傾聽器
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
             android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -78,12 +65,11 @@ class SearchFragment : Fragment() {
                 roomViewModel.getSearchRooms(keywords)
                 return false
             }
-
         })
     }
 
     inner class SearchRoomAdapter : RecyclerView.Adapter<SearchViewHolder>() {
-        val searchRooms = mutableListOf<Lightyear>()
+        private val searchRooms = mutableListOf<Lightyear>()
         override fun getItemCount(): Int {
             return searchRooms.size
         }
@@ -95,21 +81,21 @@ class SearchFragment : Fragment() {
 
         override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
             val lightYearSearch = searchRooms[position]
-            holder.streamName.setText(lightYearSearch.nickname)
-            holder.title.setText(lightYearSearch.stream_title)
-            holder.tags.setText(lightYearSearch.tags)
+            holder.streamName.text = lightYearSearch.nickname
+            holder.title.text = lightYearSearch.stream_title
+            holder.tags.text = lightYearSearch.tags
             Glide.with(this@SearchFragment).load(lightYearSearch.head_photo)
                 .into(holder.headPhoto)
             holder.itemView.setOnClickListener {
                 searchRoomClicked(lightYearSearch)
             }
         }
+
+        @SuppressLint("NotifyDataSetChanged")
         fun submitRooms(rooms: List<Lightyear>) {
             searchRooms.clear()
-            Log.d(TAG, "count of rooms = ${searchRooms.size}")
             searchRooms.addAll(rooms)
-            Log.d(TAG, "count of rooms = ${searchRooms.size}")
-            if (rooms.size == 0) {
+            if (rooms.isEmpty()) {
                 binding.tvSearchResult.visibility = View.GONE
             } else {
                 binding.tvSearchResult.visibility = View.VISIBLE

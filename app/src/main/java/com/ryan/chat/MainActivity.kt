@@ -12,6 +12,8 @@ import android.widget.ImageView
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import kotlin.math.log
+import kotlin.properties.Delegates
 
 
 class MainActivity : AppCompatActivity() {
@@ -22,66 +24,102 @@ class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     val mainFragments = mutableListOf<Fragment>()
     val chatFragments = mutableListOf<Fragment>()
-    private val roomViewModel by viewModels<RoomViewModel>()
     private val userViewModel by viewModels<UserViewModel>()
-    lateinit var auth : FirebaseAuth
-    lateinit var headObserver : Observer<String>
+    lateinit var auth: FirebaseAuth
+    lateinit var headObserver: Observer<String>
     lateinit var nickNameObserver: Observer<String>
+    lateinit var loginObserver: Observer<Boolean>
+//    var loginState by Delegates.notNull<Boolean>()
 
 
-        override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onResume() {
+        super.onResume()
+        if (userViewModel.loginLive.value == true) {
+//            binding.imHead.visibility = View.VISIBLE
+//            binding.tvHomeLoginNickname.visibility = View.VISIBLE
+            userViewModel.headLive.value?.let { displaySmallHeadImage(it) }
+            Log.d(TAG, "head.value = ${userViewModel.headLive.value}")
+            Log.d(TAG, "login.value = true")
+        } else {
+            binding.tvHomeLoginNickname.visibility = View.GONE
+            binding.imHead.visibility = View.GONE
+            Log.d(TAG, "login.value = false")
+        }
+        Log.d(TAG, "onResume: ")
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-//        val sysLanguage = Locale.getDefault().getLanguage()
-//        Log.d(TAG, "目前語言是 = $sysLanguage")
-
-        val defaultPath = "android.resource://$packageName/drawable/picpersonal"
-        headObserver = Observer { uri ->
-            Log.d(TAG, "onStart: uri = $uri")
-            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
-            val defaultImageUri = Uri.parse(defaultImagePath)
-            if (uri == defaultImageUri.toString()) {
-                binding.imHead.visibility = View.GONE
-                Log.d(TAG, "onStart: 有進來")
-            } else displaySmallHeadImage(uri)
-        }
-        nickNameObserver = Observer { nickName ->
-            binding.tvHomeLoginNickname.text = nickName
-            Log.d(TAG, "onStart: nickName = $nickName")
-        }
 
         // 小頭貼設置方式為置中
         binding.imHead.scaleType = ImageView.ScaleType.CENTER_CROP
-
-        // 初始化權限實例
-        auth = FirebaseAuth.getInstance()
-//        val user = auth.currentUser
-//        auth.signOut()
-
-
-        // 頭貼觀察者
-//        userViewModel.head.observe(this) { uri ->
-//            displaySmallHeadImage(uri)
-//        }
-        // 使用頭貼 ViewModel 獲取此 user 當前 head
-//        headViewModel.getHeadImageByUid(auth.uid!!)
-//        headViewModel.getHeadImageByUserProfile(contentResolver)
-
 
         binding.searchContainer.visibility = View.GONE
 
         initFragments()
 
+        loginObserver = Observer { login ->
+            if (login) {
+//                userViewModel.headLive.value?.let { displaySmallHeadImage(it) }
+                binding.tvHomeLoginNickname.text = userViewModel.nickNameLive.value
+                Log.d(TAG, "onStart: change to true")
+            } else {
+                true
+                Log.d(TAG, "onStart: change to false")
+            }
+        }
+
+
+         // 設置頭貼觀察者
+//        userViewModel.headLive.observe(this) { uri ->
+//            Log.d(TAG, "onCreate: uri = $uri")
+//            displaySmallHeadImage(uri)
+//        }
+
+//         初始化並設置頭貼觀察者
+//        headObserver = Observer { uri ->
+//            Log.d(TAG, "onStart: uri = $uri")
+//            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
+//            val defaultImageUri = Uri.parse(defaultImagePath)
+//            if (uri == defaultImageUri.toString()) {
+//                binding.imHead.visibility = View.GONE
+//                Log.d(TAG, "onStart: 有進來")
+//            } else displaySmallHeadImage(uri)
+//        }
+
+//        // 設置暱稱觀察者
+//        userViewModel.nickNameLive.observe(this) { nickName ->
+//            binding.tvHomeLoginNickname.text = nickName
+//            Log.d(TAG, "onCreate: nickName = $nickName")
+//        }
+//        初始化並設置暱稱觀察者
+//        nickNameObserver = Observer { nickName ->
+//            binding.tvHomeLoginNickname.text = nickName
+//            Log.d(TAG, "onStart: nickName = $nickName")
+//        }
+
+        userViewModel.getFireUserInfo()
+
+         // 設置登入觀察者
+        userViewModel.loginLive.observe(this) { login ->
+            if (login) {
+//                userViewModel.headLive.value?.let { displaySmallHeadImage(it) }
+                binding.tvHomeLoginNickname.text = userViewModel.nickNameLive.value
+                Log.d(TAG, "onCreate: change to true")
+            } else {
+                true
+                Log.d(TAG, "onCreate: change to false")
+            }
+        }
+
 
         binding.bottonNavBar.setOnItemSelectedListener { item ->
-            auth = FirebaseAuth.getInstance()
-            val user = auth.currentUser
-            Log.d(TAG, "onCreate: user = $user")
 
             when (item.itemId) {
                 R.id.action_home -> {
-                    if (user != null) {
+                    if (userViewModel.loginLive.value == true) {
                         binding.tvHomeLoginNickname.visibility = View.VISIBLE
                         binding.imHead.visibility = View.VISIBLE
                     } else {
@@ -96,27 +134,26 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.action_person -> {
-                    binding.imHead.visibility = View.GONE
                     binding.tvHomeLoginNickname.visibility = View.GONE
-                    val prefLogin = getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
-                    val login = prefLogin.getBoolean("login_state", false)
-                    Log.d(TAG, "login_state = $login")
-                    if (user != null) {
+                    binding.imHead.visibility = View.GONE
+                    if (userViewModel.loginLive.value == true) {
                         Log.d(TAG, "有登入去個人資訊")
                         supportFragmentManager.beginTransaction().run {
                             replace(R.id.main_container, mainFragments[2])
-                            commit() }
+                            commit()
+                        }
                     } else {
                         Log.d(TAG, "未登入去登入頁面")
                         supportFragmentManager.beginTransaction().run {
                             replace(R.id.main_container, mainFragments[3])
-                            commit() }
+                            commit()
+                        }
                     }
                     binding.searchContainer.visibility = View.GONE
                     true
                 }
                 R.id.action_search -> {
-                    if (user != null) {
+                    if (userViewModel.loginLive.value == true) {
                         binding.tvHomeLoginNickname.visibility = View.VISIBLE
                         binding.imHead.visibility = View.VISIBLE
                     } else {
@@ -128,56 +165,16 @@ class MainActivity : AppCompatActivity() {
                         commit()
                     }
                     binding.searchContainer.visibility = View.VISIBLE
-//                    roomViewModel.chatRooms.observe(this) { rooms ->
-//                        HomeFragment().adapter.submitRooms(rooms)
-//                        Log.d(TAG, "第一間房間是 = ${rooms[0].nickname}")
-//                    }
-//                    roomViewModel.getHitRooms()
                     true
                 }
                 else -> true
             }
         }
-
     }
 
-    fun displaySmallHeadImage(uri:String) {
+    fun displaySmallHeadImage(uri: String) {
         Glide.with(this).load(uri)
             .into(binding.imHead)
-    }
-
-    override fun onStart() {
-        super.onStart()
-//        auth = FirebaseAuth.getInstance()
-//        val user = auth.currentUser
-//        userViewModel.user.observe(this) { user ->
-//            if (user != null) {
-//                Log.d(TAG, "onStart: user.photoUri = ${user.photoUrl}")
-//                Log.d(TAG, "onStart: user.displayName = ${user.displayName}")
-//                binding.tvHomeLoginNickname.text = user.displayName
-//                Glide.with(this).load(user.photoUrl)
-//                    .into(binding.imHead)
-//                Log.d(TAG, "onStart: currentUser = $user")
-//            }
-//        }
-
-        userViewModel.headLive.observe(this, headObserver)
-
-//        userViewModel.headLive.observe(this) { uri ->
-//            Log.d(TAG, "onStart: uri = $uri")
-//            val defaultImagePath = "android.resource://com.ryan.chat/drawable/picpersonal"
-//            val defaultImageUri = Uri.parse(defaultImagePath)
-//            if (uri == defaultImageUri.toString()) {
-//                binding.imHead.visibility = View.GONE
-//                Log.d(TAG, "onStart: 有進來")
-//            } else displaySmallHeadImage(uri)
-//        }
-
-        userViewModel.nickNameLive.observe(this, nickNameObserver)
-
-        userViewModel.getFireUserInfo()
-//        val user = userViewModel.user.value
-
     }
 
 
@@ -200,4 +197,5 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
 }

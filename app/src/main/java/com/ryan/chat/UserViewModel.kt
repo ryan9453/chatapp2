@@ -12,11 +12,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
+import kotlin.math.log
 
 class UserViewModel : ViewModel() {
 
     companion object {
-        val TAG = UserViewModel::class.java.simpleName
+        val TAG: String = UserViewModel::class.java.simpleName
     }
     lateinit var auth : FirebaseAuth
     val headImage = MutableLiveData<Bitmap>()
@@ -24,6 +25,15 @@ class UserViewModel : ViewModel() {
     val userLive = MutableLiveData<FirebaseUser?>()
     val nickNameLive = MutableLiveData<String>()
     val userIdLive = MutableLiveData<String>()
+    val loginLive = MutableLiveData(false)
+
+    fun loginToFire() {
+        loginLive.postValue(true)
+    }
+
+    fun signOutFire() {
+        loginLive.postValue(false)
+    }
 
     fun getFireUser() {
         val auth = FirebaseAuth.getInstance()
@@ -31,19 +41,34 @@ class UserViewModel : ViewModel() {
         userLive.postValue(currentUser)
     }
 
+    fun getNewHead(uri : String) {
+        headLive.value = uri
+        Log.d(TAG, "getNewHead: uri = $uri")
+    }
+
     fun getFireUserInfo() {
         val auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
-        userLive.postValue(currentUser)
+        userLive.value = currentUser
         if (currentUser != null) {
             val email = currentUser.email
             val userId = email?.subSequence(0, email.indexOf('@'))
-            headLive.postValue(auth.currentUser?.photoUrl.toString())
-            nickNameLive.postValue(auth.currentUser?.displayName)
-            userIdLive.postValue(userId.toString())
-
+            headLive.value = auth.currentUser?.photoUrl.toString()
+            nickNameLive.value = auth.currentUser?.displayName
+            userIdLive.value = userId.toString()
+            loginLive.value = true
+            Log.d(TAG, "if_getFireUserInfo: user = $currentUser")
+            Log.d(TAG, "if_getFireUserInfo: head.value = ${headLive.value}")
+            Log.d(TAG, "if_getFireUserInfo: user.value = ${userLive.value}")
+            Log.d(TAG, "if_getFireUserInfo: login.value = ${loginLive.value}")
+        } else {
+            loginLive.value = false
+            Log.d(TAG, "else_getFireUserInfo: user = $currentUser")
+            Log.d(TAG, "if_getFireUserInfo: head.value = ${headLive.value}")
+            Log.d(TAG, "else_getFireUserInfo: user.value = ${userLive.value}")
+            Log.d(TAG, "else_getFireUserInfo: login.value = ${loginLive.value}")
         }
-        Log.d(TAG, "getFireUserInfo: user = ${userLive.value}")
+
     }
 
 
