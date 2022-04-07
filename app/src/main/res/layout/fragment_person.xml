@@ -16,57 +16,67 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_member_info" />
 
+    <EditText
+        android:id="@+id/ed_person_name"
+        android:layout_width="140dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="-8dp"
+        android:ems="10"
+        android:hint="@string/name"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_person_show_name"
+        app:layout_constraintStart_toStartOf="@+id/tv_person_show_name"
+        app:layout_constraintTop_toTopOf="@+id/tv_person_show_name"
+        tools:ignore="TouchTargetSizeCheck"
+        tools:visibility="invisible" />
+
     <TextView
         android:id="@+id/tv_person_show_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginStart="26dp"
         android:text="@string/name"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="#4A4A4A"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/im_my_head" />
+        app:layout_constraintBottom_toBottomOf="@+id/tv_person_name"
+        app:layout_constraintStart_toEndOf="@+id/tv_person_name"
+        app:layout_constraintTop_toTopOf="@+id/tv_person_name" />
 
     <TextView
         android:id="@+id/tv_person_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/name"
         android:textColor="#4A4A4A"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_person_show_name"
-        app:layout_constraintEnd_toStartOf="@+id/tv_person_show_name"
-        app:layout_constraintTop_toTopOf="@+id/tv_person_show_name"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintEnd_toStartOf="@+id/im_my_head"
+        app:layout_constraintTop_toBottomOf="@+id/im_my_head" />
 
     <TextView
         android:id="@+id/tv_person_show_userid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginStart="24dp"
         android:text="@string/userid"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="#4A4A4A"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_person_show_name" />
+        app:layout_constraintBottom_toBottomOf="@+id/tv_person_userid"
+        app:layout_constraintStart_toEndOf="@+id/tv_person_userid"
+        app:layout_constraintTop_toTopOf="@+id/tv_person_userid" />
 
     <TextView
         android:id="@+id/tv_person_userid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
+        android:layout_marginTop="24dp"
         android:text="@string/userid"
         android:textColor="#4A4A4A"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_person_show_userid"
-        app:layout_constraintEnd_toStartOf="@+id/tv_person_show_userid"
-        app:layout_constraintTop_toTopOf="@+id/tv_person_show_userid"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintEnd_toEndOf="@+id/tv_person_name"
+        app:layout_constraintStart_toStartOf="@+id/tv_person_name"
+        app:layout_constraintTop_toBottomOf="@+id/tv_person_name" />
 
     <TextView
         android:id="@+id/tv_member_info"
@@ -84,7 +94,7 @@
         android:id="@+id/bt_logout"
         android:layout_width="200dp"
         android:layout_height="45dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="160dp"
         android:alpha="0.75"
         android:background="@drawable/msg_back"
         android:text="@string/log_out"
@@ -93,15 +103,40 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_person_show_userid" />
+        app:layout_constraintTop_toBottomOf="@+id/im_my_head"
+        tools:ignore="TouchTargetSizeCheck" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/bt_edit_head"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:layout_marginTop="224dp"
-        android:layout_marginEnd="144dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="-8dp"
+        android:layout_marginBottom="-8dp"
         android:background="@drawable/btnbedit"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/im_my_head"
+        app:layout_constraintEnd_toEndOf="@+id/im_my_head"
+        tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
+
+    <ImageButton
+        android:id="@+id/bt_edit_name_ok"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_person_show_name"
+        app:layout_constraintStart_toEndOf="@+id/ed_person_name"
+        app:layout_constraintTop_toTopOf="@+id/tv_person_show_name"
+        app:srcCompat="@drawable/ic_baseline_check_24"
+        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck,DuplicateClickableBoundsCheck"
+        tools:visibility="invisible" />
+
+    <ImageButton
+        android:id="@+id/bt_edit_name"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="32dp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_person_show_name"
+        app:layout_constraintStart_toEndOf="@+id/tv_person_show_name"
+        app:layout_constraintTop_toTopOf="@+id/tv_person_show_name"
+        app:srcCompat="@drawable/ic_baseline_edit_24"
+        tools:ignore="DuplicateClickableBoundsCheck,TouchTargetSizeCheck,SpeakableTextPresentCheck"
+        tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>

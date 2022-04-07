@@ -68,6 +68,8 @@ class PersonFragment : Fragment() {
     override fun onViewCreated(view: View1, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.btEditNameOk.visibility = android.view.View.INVISIBLE
+        binding.edPersonName.visibility = android.view.View.INVISIBLE
         binding.tvPersonShowUserid.text = userViewModel.userIdLive.value
         binding.tvPersonShowName.text = userViewModel.nickNameLive.value
         userViewModel.headLive.value?.let { displayHeadImage(it) }
@@ -129,6 +131,21 @@ class PersonFragment : Fragment() {
                 }
                 .show()
         }
+
+        binding.btEditName.setOnClickListener {
+            binding.tvPersonShowName.visibility = android.view.View.INVISIBLE
+            binding.btEditName.visibility = android.view.View.INVISIBLE
+            binding.edPersonName.visibility = android.view.View.VISIBLE
+            binding.btEditNameOk.visibility = android.view.View.VISIBLE
+        }
+
+        binding.btEditNameOk.setOnClickListener {
+            binding.tvPersonShowName.visibility = android.view.View.VISIBLE
+            binding.btEditName.visibility = android.view.View.VISIBLE
+            binding.edPersonName.visibility = android.view.View.INVISIBLE
+            binding.btEditNameOk.visibility = android.view.View.INVISIBLE
+        }
+
     }
 
 
