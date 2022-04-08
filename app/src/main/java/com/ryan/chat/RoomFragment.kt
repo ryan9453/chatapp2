@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,6 +36,7 @@ class RoomFragment : Fragment() {
 
     lateinit var adapter : RoomMessageAdapter
     val messageViewModel by viewModels<MessageViewModel>()
+    val userViewModel by activityViewModels<UserViewModel>()
     var connectTimes = 0
 
 
@@ -74,11 +76,6 @@ class RoomFragment : Fragment() {
         // 由此處開始寫 code
 
         val parentActivity =  requireActivity() as MainActivity
-        val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
-        val prefUser = requireContext().getSharedPreferences("userinfo", AppCompatActivity.MODE_PRIVATE)
-        var login = prefLogin.getBoolean("login_state", false)
-        var user = prefLogin.getString("login_userid", "")
-        var username = prefUser.getString("${user}name", "guest")
         var requestName = getString(R.string.guest)
         val enterWelcomeString = getString(R.string.welcome)
         val enterRoomString = getString(R.string.that_entering_the_room)
@@ -90,13 +87,13 @@ class RoomFragment : Fragment() {
         val chatDialogNo = getString(R.string.chat_no)
 
 
-        if (login) {
-            requestName = username.toString()
-        } else true
+        if (userViewModel.loginLive.value == true) {
+            requestName = userViewModel.nickNameLive.value.toString()
+        }
 
-        var path = "girl"
-        var vidPath = "android.resource://"+requireContext().packageName+"/raw/$path"
-        var uri = Uri.parse(vidPath)
+        val path = "girl"
+        val vidPath = "android.resource://"+requireContext().packageName+"/raw/$path"
+        val uri = Uri.parse(vidPath)
 
         val client = OkHttpClient.Builder()
             .readTimeout(3, TimeUnit.SECONDS)
@@ -130,18 +127,33 @@ class RoomFragment : Fragment() {
                     val response = Gson().fromJson(json, UpdateRoomStatus::class.java)
                     val action = response.body.entry_notice.action
                     val country = Locale.getDefault().country
+                    val username = response.body.entry_notice.username
                     Log.d(TAG, "目前國家是 = $country")
 
                     singleMessage =
                         when (action)  {
 //                                "enter" -> "歡迎 ${response.body.entry_notice.username} 進入聊天室"
-                            "enter" -> enterWelcomeString+" ${response.body.entry_notice.username} "+enterRoomString
+                            "enter" -> {
+                                "$enterWelcomeString $username $enterRoomString"
+                            }
 
 //                                "leave" ->  "${response.body.entry_notice.username} 已離開直播間"
-                            "leave" ->  "${response.body.entry_notice.username} "+leaveString
+                            "leave" -> "$username $leaveString"
                             //                                      Log.d(TAG, " ${response.body.entry_notice.username} 已離開聊天室")
                             else -> ""
                         }
+
+                    if (action == "enter") {
+                        if (username == userViewModel.nickNameLive.value) {
+                            sendIntroduceMessage()
+                        } else {
+                            sendWelcomeMessage(username)
+                        }
+                    }
+
+                    if (action == "leave") {
+                        sendByeMessage(username)
+                    }
 //                        Log.d(TAG, "歡迎 ${response.body.entry_notice.username} 進到聊天室")
 //                        Log.d(TAG, "${getString(R.string.welcome)} ${response.body.entry_notice.username} ${getString(R.string.that_entering_the_room)}2")
 
@@ -217,6 +229,8 @@ class RoomFragment : Fragment() {
             adapter.submitMessages(messages)
         }
 
+
+
         binding.btSend.setOnClickListener {
             val message = binding.edSendMessage.text.toString()
             val json = Gson().toJson(SendMessage("N", message))
@@ -247,6 +261,25 @@ class RoomFragment : Fragment() {
         }
 
     }
+
+    private fun sendWelcomeMessage(newPersonName : String) {
+        val message = "欸嗨 $newPersonName 中午要吃啥？"
+        val json = Gson().toJson(SendMessage("N", message))
+        websocket.send(json)
+    }
+
+    private fun sendIntroduceMessage() {
+        val message = "hello everybody, I am ${userViewModel.nickNameLive.value}"
+        val json = Gson().toJson(SendMessage("N", message))
+        websocket.send(json)
+    }
+
+    private fun sendByeMessage(leavePersonName : String) {
+        val message = "bye, $leavePersonName"
+        val json = Gson().toJson(SendMessage("N", message))
+        websocket.send(json)
+    }
+
     inner class RoomMessageAdapter : RecyclerView.Adapter<MessageViewHolder>() {
         val sendMessage = mutableListOf<String>()
         override fun getItemCount(): Int {

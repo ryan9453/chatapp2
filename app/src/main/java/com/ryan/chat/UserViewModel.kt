@@ -41,6 +41,11 @@ class UserViewModel : ViewModel() {
         userLive.postValue(currentUser)
     }
 
+    fun getNewName(newName : String) {
+        nickNameLive.value = newName
+        Log.d(TAG, "getNewName: newName = $newName")
+    }
+
     fun getNewHead(uri : String) {
         headLive.value = uri
         Log.d(TAG, "getNewHead: uri = $uri")

@@ -83,6 +83,7 @@ class PersonFragment : Fragment() {
         // 登出按鈕
         // 將首頁的 小頭貼跟名字隱藏
         binding.btLogout.setOnClickListener {
+            auth = FirebaseAuth.getInstance()
 
             // firebase 登出
             auth.signOut()
@@ -144,6 +145,12 @@ class PersonFragment : Fragment() {
             binding.btEditName.visibility = android.view.View.VISIBLE
             binding.edPersonName.visibility = android.view.View.INVISIBLE
             binding.btEditNameOk.visibility = android.view.View.INVISIBLE
+            val newName = binding.edPersonName.text.toString()
+            updateNickNameToProfile(newName)
+            userViewModel.nickNameLive.value = newName
+            binding.tvPersonShowName.text = newName
+            parentActivity.binding.tvHomeLoginNickname.text = newName
+
         }
 
     }
@@ -341,6 +348,21 @@ class PersonFragment : Fragment() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Log.d(SignUpFragment.TAG, "new image is updated.")
+                    }
+                }
+        }
+    }
+
+    private fun updateNickNameToProfile(newName : String) {
+        auth = FirebaseAuth.getInstance()
+        auth.currentUser?.let { user ->
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(newName)
+                .build()
+            user.updateProfile(profileUpdates)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(SignUpFragment.TAG, "new name is updated.")
                     }
                 }
         }

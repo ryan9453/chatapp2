@@ -173,6 +173,8 @@ class LoginFragment : Fragment() {
 
         // 清密碼
         binding.edLoginPwd.text.clear()
+        parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
+        parentActivity.binding.imHead.visibility = View.VISIBLE
 
         // 登入成功對話框，按 OK 後都會跳轉到 HomeFragment
         parentActivity.supportFragmentManager.beginTransaction().run {
