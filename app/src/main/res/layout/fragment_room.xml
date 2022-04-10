@@ -6,14 +6,25 @@
     android:layout_height="match_parent"
     android:background="@drawable/logout">
 
+
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/v_stream"
+        android:focusable="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <VideoView
-        android:id="@+id/v_girl"
+        android:id="@+id/v_video"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:focusable="true"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+    </VideoView>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/bt_leave"

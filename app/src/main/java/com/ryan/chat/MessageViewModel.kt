@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import okhttp3.WebSocket
 
 class MessageViewModel :ViewModel() {
-    val blockStringList = listOf<Char>('?','~','!','#','$','%','^','&','*','(',')','_','-','+','=','?','<','>','.','—','，','。','/','\\','|','《','》','？',';',':','：','\'','‘','；','“',)
+    private val blockStringList = listOf<Char>('?','~','!','#','$','%','^','&','*','(',')','_','-','+','=','?','<','>','.','—','，','。','/','\\','|','《','》','？',';',':','：','\'','‘','；','“',)
     val messages = MutableLiveData<String>()
 
     fun getMessages(singleMessage: String) {

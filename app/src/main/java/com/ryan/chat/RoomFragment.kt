@@ -15,6 +15,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.util.Util
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.ryan.chat.databinding.FragmentRoomBinding
@@ -23,23 +27,26 @@ import okhttp3.*
 import okio.ByteString
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.math.exp
 
 class RoomFragment : Fragment() {
     companion object {
-        val TAG = RoomFragment::class.java.simpleName
+        val TAG: String = RoomFragment::class.java.simpleName
         val instance : RoomFragment by lazy {
             RoomFragment()
         }
     }
     lateinit var websocket: WebSocket
     lateinit var binding: FragmentRoomBinding
-
     lateinit var adapter : RoomMessageAdapter
     val messageViewModel by viewModels<MessageViewModel>()
     val userViewModel by activityViewModels<UserViewModel>()
     var connectTimes = 0
 
-
+    private var player: SimpleExoPlayer? = null
+    private var playWhenReady = true
+    private var currentPosition = 0
+    private var playbackPosition = 0L
 
     // 測試用 直播室網址（圖片版
     val mapOfRoomId = mapOf(
@@ -65,9 +72,8 @@ class RoomFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentRoomBinding.inflate(inflater)
-//        return super.onCreateView(inflater, container, savedInstanceState)
         return binding.root
     }
 
@@ -213,10 +219,10 @@ class RoomFragment : Fragment() {
         })
 
         // 自動播放 Demo影片
-        binding.vGirl.setVideoURI(uri)
+        binding.vVideo.setVideoURI(uri)
 //        binding.vGirl.setVideoURI((Uri.parse("https://player.vimeo.com/video/653928650")))
-        binding.vGirl.setOnPreparedListener {
-            binding.vGirl.start()
+        binding.vVideo.setOnPreparedListener {
+            binding.vVideo.start()
         }
 
         /// 聊天視窗
@@ -263,7 +269,7 @@ class RoomFragment : Fragment() {
     }
 
     private fun sendWelcomeMessage(newPersonName : String) {
-        val message = "欸嗨 $newPersonName 中午要吃啥？"
+        val message = "$newPersonName 你好，下班記得打卡，記得寫心得"
         val json = Gson().toJson(SendMessage("N", message))
         websocket.send(json)
     }
@@ -293,7 +299,7 @@ class RoomFragment : Fragment() {
 
         override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
             val singleMessage = sendMessage[position]
-            holder.messageContent.setText(singleMessage)
+            holder.messageContent.text = singleMessage
         }
         fun submitMessages(messages: String) {
             sendMessage.add(0, messages)
@@ -306,5 +312,72 @@ class RoomFragment : Fragment() {
             RecyclerView.ViewHolder(binding.root) {
                 val messageContent = binding.tvRoomMessage
             }
+
+    override fun onStart() {
+        super.onStart()
+        if (Util.SDK_INT >= 24) {
+            initializePlayer()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hideSystemUi()
+        if (Util.SDK_INT < 24 || player == null) {
+            initializePlayer()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (Util.SDK_INT < 24) {
+            releasePlayer()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (Util.SDK_INT >= 24) {
+            releasePlayer()
+        }
+    }
+
+    private fun releasePlayer() {
+        player?.run {
+            playbackPosition = this.currentPosition
+            this@RoomFragment.currentPosition = this.currentWindowIndex
+            this@RoomFragment.playWhenReady = this.playWhenReady
+            release()
+        }
+        player = null
+    }
+
+    private fun hideSystemUi() {
+        binding.vStream.systemUiVisibility = (View.SYSTEM_UI_FLAG_LOW_PROFILE
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+    }
+
+    private fun initializePlayer() {
+        val trackSelector = DefaultTrackSelector(requireContext()).apply {
+            setParameters(buildUponParameters().setMaxVideoSizeSd())
+        }
+
+        player = SimpleExoPlayer.Builder(requireContext())
+            .setTrackSelector(trackSelector)
+            .build()
+            .also { exoPlayer ->
+                binding.vStream.player = exoPlayer
+                val mediaItem = MediaItem.fromUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+                exoPlayer.setMediaItem(mediaItem)
+                exoPlayer.playWhenReady = playWhenReady
+                exoPlayer.seekTo(currentPosition, playbackPosition)
+                exoPlayer.prepare()
+            }
+    }
+
 
 }
