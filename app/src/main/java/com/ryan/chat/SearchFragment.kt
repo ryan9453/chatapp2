@@ -121,7 +121,7 @@ class SearchFragment : Fragment() {
             commit()
         }
         parentActivity.binding.searchContainer.visibility = View.GONE
-        parentActivity.binding.bottonNavBar.visibility = View.GONE
+        parentActivity.binding.bottomNavBar.visibility = View.GONE
     }
 
 }

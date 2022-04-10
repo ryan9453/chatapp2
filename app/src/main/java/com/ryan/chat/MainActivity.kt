@@ -12,6 +12,8 @@ import android.widget.ImageView
 import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import nl.joery.animatedbottombar.AnimatedBottomBar
+import java.util.*
 import kotlin.math.log
 import kotlin.properties.Delegates
 
@@ -66,7 +68,6 @@ class MainActivity : AppCompatActivity() {
                 binding.tvHomeLoginNickname.text = userViewModel.nickNameLive.value
                 Log.d(TAG, "onStart: change to true")
             } else {
-                true
                 Log.d(TAG, "onStart: change to false")
             }
         }
@@ -109,67 +110,124 @@ class MainActivity : AppCompatActivity() {
                 binding.tvHomeLoginNickname.text = userViewModel.nickNameLive.value
                 Log.d(TAG, "onCreate: change to true")
             } else {
-                true
                 Log.d(TAG, "onCreate: change to false")
             }
         }
-
-
-        binding.bottonNavBar.setOnItemSelectedListener { item ->
-
-            when (item.itemId) {
-                R.id.action_home -> {
-                    if (userViewModel.loginLive.value == true) {
-                        binding.tvHomeLoginNickname.visibility = View.VISIBLE
-                        binding.imHead.visibility = View.VISIBLE
-                    } else {
-                        binding.tvHomeLoginNickname.visibility = View.GONE
-                        binding.imHead.visibility = View.GONE
-                    }
-                    supportFragmentManager.beginTransaction().run {
-                        replace(R.id.main_container, mainFragments[1])
-                        commit()
-                    }
-                    binding.searchContainer.visibility = View.GONE
-                    true
-                }
-                R.id.action_person -> {
-                    binding.tvHomeLoginNickname.visibility = View.GONE
-                    binding.imHead.visibility = View.GONE
-                    if (userViewModel.loginLive.value == true) {
-                        Log.d(TAG, "有登入去個人資訊")
+        binding.bottomBar2.setOnTabSelectListener(object : AnimatedBottomBar.OnTabSelectListener{
+            override fun onTabSelected(
+                lastIndex: Int,
+                lastTab: AnimatedBottomBar.Tab?,
+                newIndex: Int,
+                newTab: AnimatedBottomBar.Tab
+            ) {
+                when (newTab.id) {
+                    R.id.action_home -> {
+                        if (userViewModel.loginLive.value == true) {
+                            binding.tvHomeLoginNickname.visibility = View.VISIBLE
+                            binding.imHead.visibility = View.VISIBLE
+                        } else {
+                            binding.tvHomeLoginNickname.visibility = View.GONE
+                            binding.imHead.visibility = View.GONE
+                        }
                         supportFragmentManager.beginTransaction().run {
-                            replace(R.id.main_container, mainFragments[2])
+                            replace(R.id.main_container, mainFragments[1])
                             commit()
                         }
-                    } else {
-                        Log.d(TAG, "未登入去登入頁面")
-                        supportFragmentManager.beginTransaction().run {
-                            replace(R.id.main_container, mainFragments[3])
-                            commit()
-                        }
+                        binding.searchContainer.visibility = View.GONE
                     }
-                    binding.searchContainer.visibility = View.GONE
-                    true
-                }
-                R.id.action_search -> {
-                    if (userViewModel.loginLive.value == true) {
-                        binding.tvHomeLoginNickname.visibility = View.VISIBLE
-                        binding.imHead.visibility = View.VISIBLE
-                    } else {
+                    R.id.action_person -> {
                         binding.tvHomeLoginNickname.visibility = View.GONE
                         binding.imHead.visibility = View.GONE
+                        if (userViewModel.loginLive.value == true) {
+                            Log.d(TAG, "有登入去個人資訊")
+                            supportFragmentManager.beginTransaction().run {
+                                replace(R.id.main_container, mainFragments[2])
+                                commit()
+                            }
+                        } else {
+                            Log.d(TAG, "未登入去登入頁面")
+                            supportFragmentManager.beginTransaction().run {
+                                replace(R.id.main_container, mainFragments[3])
+                                commit()
+                            }
+                        }
+                        binding.searchContainer.visibility = View.GONE
                     }
-                    supportFragmentManager.beginTransaction().run {
-                        replace(R.id.main_container, mainFragments[5])
-                        commit()
+                    R.id.action_search -> {
+                        if (userViewModel.loginLive.value == true) {
+                            binding.tvHomeLoginNickname.visibility = View.VISIBLE
+                            binding.imHead.visibility = View.VISIBLE
+                        } else {
+                            binding.tvHomeLoginNickname.visibility = View.GONE
+                            binding.imHead.visibility = View.GONE
+                        }
+                        supportFragmentManager.beginTransaction().run {
+                            replace(R.id.main_container, mainFragments[5])
+                            commit()
+                        }
+                        binding.searchContainer.visibility = View.VISIBLE
                     }
-                    binding.searchContainer.visibility = View.VISIBLE
-                    true
                 }
-                else -> true
             }
-        }
+
+        })
+
+
+//        binding.bottomNavBar.setOnItemSelectedListener { item ->
+//
+//            when (item.itemId) {
+//                R.id.action_home -> {
+//                    if (userViewModel.loginLive.value == true) {
+//                        binding.tvHomeLoginNickname.visibility = View.VISIBLE
+//                        binding.imHead.visibility = View.VISIBLE
+//                    } else {
+//                        binding.tvHomeLoginNickname.visibility = View.GONE
+//                        binding.imHead.visibility = View.GONE
+//                    }
+//                    supportFragmentManager.beginTransaction().run {
+//                        replace(R.id.main_container, mainFragments[1])
+//                        commit()
+//                    }
+//                    binding.searchContainer.visibility = View.GONE
+//                    true
+//                }
+//                R.id.action_person -> {
+//                    binding.tvHomeLoginNickname.visibility = View.GONE
+//                    binding.imHead.visibility = View.GONE
+//                    if (userViewModel.loginLive.value == true) {
+//                        Log.d(TAG, "有登入去個人資訊")
+//                        supportFragmentManager.beginTransaction().run {
+//                            replace(R.id.main_container, mainFragments[2])
+//                            commit()
+//                        }
+//                    } else {
+//                        Log.d(TAG, "未登入去登入頁面")
+//                        supportFragmentManager.beginTransaction().run {
+//                            replace(R.id.main_container, mainFragments[3])
+//                            commit()
+//                        }
+//                    }
+//                    binding.searchContainer.visibility = View.GONE
+//                    true
+//                }
+//                R.id.action_search -> {
+//                    if (userViewModel.loginLive.value == true) {
+//                        binding.tvHomeLoginNickname.visibility = View.VISIBLE
+//                        binding.imHead.visibility = View.VISIBLE
+//                    } else {
+//                        binding.tvHomeLoginNickname.visibility = View.GONE
+//                        binding.imHead.visibility = View.GONE
+//                    }
+//                    supportFragmentManager.beginTransaction().run {
+//                        replace(R.id.main_container, mainFragments[5])
+//                        commit()
+//                    }
+//                    binding.searchContainer.visibility = View.VISIBLE
+//                    true
+//                }
+//                else -> true
+//            }
+//        }
     }
 
     fun displaySmallHeadImage(uri: String) {

@@ -102,7 +102,7 @@ class HomeFragment : Fragment() {
             replace(R.id.chat_container, parentActivity.chatFragments[1])
             commit()
         }
-        parentActivity.binding.bottonNavBar.visibility = View.GONE
+        parentActivity.binding.bottomNavBar.visibility = View.GONE
         parentActivity.binding.searchContainer.visibility = View.GONE
         parentActivity.binding.imHead.visibility = View.GONE
         parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE

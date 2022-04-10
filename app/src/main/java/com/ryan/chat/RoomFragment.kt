@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -259,7 +260,7 @@ class RoomFragment : Fragment() {
 //                        val login = prefLogin.getBoolean("login_state", false)
                     parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
                     parentActivity.binding.imHead.visibility = View.VISIBLE
-                    parentActivity.binding.bottonNavBar.visibility = View.VISIBLE
+                    parentActivity.binding.bottomNavBar.visibility = View.VISIBLE
                 }
                 .setNegativeButton(chatDialogNo, null)
                 .show()
@@ -371,7 +372,15 @@ class RoomFragment : Fragment() {
             .build()
             .also { exoPlayer ->
                 binding.vStream.player = exoPlayer
-                val mediaItem = MediaItem.fromUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+
+                // basic way
+//                val mediaItem = MediaItem.fromUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+
+                val mediaItem = MediaItem.Builder()
+                    .setUri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+//                    .setMimeType(MimeTypes.APPLICATION_MPD)
+                    .build()
+
                 exoPlayer.setMediaItem(mediaItem)
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.seekTo(currentPosition, playbackPosition)
