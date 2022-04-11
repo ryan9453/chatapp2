@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/layout/fragment_login.xml" value="0.21768707482993196" />
         <entry key="app/src/main/res/layout/fragment_person.xml" value="0.9" />
         <entry key="app/src/main/res/layout/fragment_room.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/fragment_search.xml" value="0.1" />
         <entry key="app/src/main/res/layout/row_hitroom.xml" value="0.171875" />
         <entry key="app/src/main/res/menu/menu_nav.xml" value="0.1765625" />
       </map>

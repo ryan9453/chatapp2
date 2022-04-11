@@ -256,11 +256,9 @@ class RoomFragment : Fragment() {
                         commit()
                     }
                     websocket.close(1000, "正常關閉")
-//                        val prefLogin = requireContext().getSharedPreferences("login", AppCompatActivity.MODE_PRIVATE)
-//                        val login = prefLogin.getBoolean("login_state", false)
                     parentActivity.binding.tvHomeLoginNickname.visibility = View.VISIBLE
                     parentActivity.binding.imHead.visibility = View.VISIBLE
-                    parentActivity.binding.bottomNavBar.visibility = View.VISIBLE
+                    parentActivity.binding.bottomBar.visibility = View.VISIBLE
                 }
                 .setNegativeButton(chatDialogNo, null)
                 .show()

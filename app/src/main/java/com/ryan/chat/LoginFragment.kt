@@ -150,8 +150,8 @@ class LoginFragment : Fragment() {
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     if (user != null) {
-                        updateUI(user)
                         userViewModel.getFireUserInfo()
+                        updateUI(user)
                         Log.d(TAG, "login.value = ${userViewModel.loginLive.value}")
                         Log.d(TAG, "logIntoFirebase: 成功登入")
                     }
@@ -177,10 +177,11 @@ class LoginFragment : Fragment() {
         parentActivity.binding.imHead.visibility = View.VISIBLE
 
         // 登入成功對話框，按 OK 後都會跳轉到 HomeFragment
-        parentActivity.supportFragmentManager.beginTransaction().run {
-            replace(R.id.main_container, parentActivity.mainFragments[1])
-            commit()
-        }
+//        parentActivity.supportFragmentManager.beginTransaction().run {
+//            replace(R.id.main_container, parentActivity.mainFragments[1])
+//            commit()
+//        }
+        parentActivity.binding.bottomBar.selectTabAt(0, true)
 
     }
 }

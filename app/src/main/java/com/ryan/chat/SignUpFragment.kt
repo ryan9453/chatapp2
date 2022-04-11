@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
@@ -25,6 +26,8 @@ class SignUpFragment : Fragment() {
     }
     private lateinit var binding: FragmentSignUpBinding
     private lateinit var auth: FirebaseAuth
+    private val userViewModel by activityViewModels<UserViewModel>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -139,6 +142,7 @@ class SignUpFragment : Fragment() {
             user.updateProfile(profileUpdates)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
+                        userViewModel.getFireUserInfo()
                         updateUI(nickName)
                         Log.d(TAG, "User first profile updated.")
                     }
@@ -149,16 +153,18 @@ class SignUpFragment : Fragment() {
     fun updateUI(nickName: String) {
         val parentActivity = requireActivity() as MainActivity
          //跳轉回 Home
-                parentActivity.supportFragmentManager.beginTransaction().run {
-                    replace(R.id.main_container, parentActivity.mainFragments[1])
-                    parentActivity.binding.tvHomeLoginNickname.text = nickName
-                    commit()
-                }
+        parentActivity.binding.tvHomeLoginNickname.text = nickName
+//        parentActivity.supportFragmentManager.beginTransaction().run {
+//            replace(R.id.main_container, parentActivity.mainFragments[1])
+//
+//            commit()
+//        }
+        parentActivity.binding.bottomBar.selectTabAt(0, true)
 
-                // 清除輸入框
-                binding.edSignName.text.clear()
-                binding.edSignPwd.text.clear()
-                binding.edSignUserid.text.clear()
-                binding.edSignPwdAgain.text.clear()
+        // 清除輸入框
+        binding.edSignName.text.clear()
+        binding.edSignPwd.text.clear()
+        binding.edSignUserid.text.clear()
+        binding.edSignPwdAgain.text.clear()
     }
 }

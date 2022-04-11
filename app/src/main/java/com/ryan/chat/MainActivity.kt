@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     val mainFragments = mutableListOf<Fragment>()
     val chatFragments = mutableListOf<Fragment>()
     private val userViewModel by viewModels<UserViewModel>()
-    lateinit var auth: FirebaseAuth
+    private val roomViewModel by viewModels<RoomViewModel>()
     lateinit var headObserver: Observer<String>
     lateinit var nickNameObserver: Observer<String>
     lateinit var loginObserver: Observer<Boolean>
@@ -54,6 +54,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 隱藏 ActionBar
+        supportActionBar?.hide()
 
         // 小頭貼設置方式為置中
         binding.imHead.scaleType = ImageView.ScaleType.CENTER_CROP
@@ -113,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "onCreate: change to false")
             }
         }
-        binding.bottomBar2.setOnTabSelectListener(object : AnimatedBottomBar.OnTabSelectListener{
+        binding.bottomBar.setOnTabSelectListener(object : AnimatedBottomBar.OnTabSelectListener{
             override fun onTabSelected(
                 lastIndex: Int,
                 lastTab: AnimatedBottomBar.Tab?,
@@ -123,12 +126,16 @@ class MainActivity : AppCompatActivity() {
                 when (newTab.id) {
                     R.id.action_home -> {
                         if (userViewModel.loginLive.value == true) {
+                            userViewModel.headLive.value?.let { displaySmallHeadImage(it) }
                             binding.tvHomeLoginNickname.visibility = View.VISIBLE
                             binding.imHead.visibility = View.VISIBLE
+                            Log.d(TAG, "R.id_home: 這邊是 true")
                         } else {
                             binding.tvHomeLoginNickname.visibility = View.GONE
                             binding.imHead.visibility = View.GONE
+                            Log.d(TAG, "R.id_home: 這邊是 false")
                         }
+                        roomViewModel.getAllRooms()
                         supportFragmentManager.beginTransaction().run {
                             replace(R.id.main_container, mainFragments[1])
                             commit()
@@ -136,8 +143,8 @@ class MainActivity : AppCompatActivity() {
                         binding.searchContainer.visibility = View.GONE
                     }
                     R.id.action_person -> {
-                        binding.tvHomeLoginNickname.visibility = View.GONE
-                        binding.imHead.visibility = View.GONE
+//                        binding.tvHomeLoginNickname.visibility = View.GONE
+//                        binding.imHead.visibility = View.GONE
                         if (userViewModel.loginLive.value == true) {
                             Log.d(TAG, "有登入去個人資訊")
                             supportFragmentManager.beginTransaction().run {
@@ -161,10 +168,16 @@ class MainActivity : AppCompatActivity() {
                             binding.tvHomeLoginNickname.visibility = View.GONE
                             binding.imHead.visibility = View.GONE
                         }
+                        roomViewModel.getHitRooms()
                         supportFragmentManager.beginTransaction().run {
-                            replace(R.id.main_container, mainFragments[5])
-                            commit()
+                            replace(R.id.main_container, mainFragments[1])
                         }
+                        // 跳轉至 HitFragment
+//                        supportFragmentManager.beginTransaction().run {
+//                            replace(R.id.main_container, mainFragments[5])
+//                            commit()
+//                        }
+//                        roomViewModel.getHitRooms()
                         binding.searchContainer.visibility = View.VISIBLE
                     }
                 }
@@ -242,8 +255,6 @@ class MainActivity : AppCompatActivity() {
         mainFragments.add(2, PersonFragment.instance)
         mainFragments.add(3, LoginFragment.instance)
         mainFragments.add(4, SignUpFragment.instance)
-        mainFragments.add(5, HitFragment.instance)
-        mainFragments.add(6, PhotoFragment.instance)
 
         chatFragments.add(0, EmptyFragment.instance)
         chatFragments.add(1, RoomFragment.instance)

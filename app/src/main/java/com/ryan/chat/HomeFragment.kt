@@ -24,15 +24,14 @@ class HomeFragment : Fragment() {
         }
     }
     lateinit var binding: FragmentHomeBinding
-    private val roomViewModel by viewModels<RoomViewModel>()
-    private val userViewModel by activityViewModels<UserViewModel>()
+    private val roomViewModel by activityViewModels<RoomViewModel>()
     var adapter = ChatRoomAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentHomeBinding.inflate(inflater)
         return binding.root
     }
@@ -102,7 +101,7 @@ class HomeFragment : Fragment() {
             replace(R.id.chat_container, parentActivity.chatFragments[1])
             commit()
         }
-        parentActivity.binding.bottomNavBar.visibility = View.GONE
+        parentActivity.binding.bottomBar.visibility = View.GONE
         parentActivity.binding.searchContainer.visibility = View.GONE
         parentActivity.binding.imHead.visibility = View.GONE
         parentActivity.binding.tvHomeLoginNickname.visibility = View.GONE
